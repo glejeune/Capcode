@@ -13,7 +13,7 @@ CLEAN.include ['**/.*.sw?', '*.gem', '.config', 'test/test.log']
 RDOC_OPTS = ['--quiet', '--title', "Capcode, the Documentation",
   "--opname", "index.html",
   "--line-numbers",
-  "--main", "README",
+  "--main", "README.rdoc",
   "--inline-source"]
 
 desc "Packages up Capcode."
@@ -25,10 +25,10 @@ task :doc => [:rdoc, :after_doc]
 Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'doc/rdoc'
   rdoc.options += RDOC_OPTS
-  rdoc.main = "README"
+  rdoc.main = "README.rdoc"
   rdoc.title = "Capcode, the Documentation"
   rdoc.rdoc_files.add [
-    'README', 
+    'README.rdoc', 
     'AUTHORS', 
     'COPYING',
     'lib/capcode.rb',
@@ -46,7 +46,7 @@ spec =
     s.version = VERS
     s.platform = Gem::Platform::RUBY
     s.has_rdoc = true
-    s.extra_rdoc_files = ["README", "AUTHORS", "COPYING",
+    s.extra_rdoc_files = ["README.rdoc", "AUTHORS", "COPYING",
       'lib/capcode.rb', 'lib/capcode/base/db.rb'] + Dir.glob( "lib/capcode/render/*.rb" )
     s.rdoc_options += RDOC_OPTS + ['--exclude', '^(examples|extras|test|lib)\/']
     s.summary = "Capcode is a web microframework"
@@ -60,7 +60,7 @@ spec =
     s.add_dependency('mime-types')
     s.required_ruby_version = ">= 1.8.1"
 
-    s.files = %w(COPYING README AUTHORS setup.rb) + 
+    s.files = %w(COPYING README.rdoc AUTHORS setup.rb) + 
       Dir.glob("{bin,doc,test,lib,examples}/**/*").delete_if {|item| item.include?("CVS") or item.include?("._")}
        
     s.require_path = "lib"
