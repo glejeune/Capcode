@@ -1,0 +1,264 @@
+= Capcode
+
+Copyright (C) 2009 Gregoire Lejeune
+
+* http://capcode.rubyforge.org
+  
+== DESCRIPTION: 
+
+Capcode is a web microframework
+
+== FEATURES/PROBLEMS:
+
+=== 0.8.3
+* Add PUT and DELETE actions (see rest example)
+
+=== 0.8.2
+* Add XML renderer (see rss example)
+* Major bug corrections
+* Add Helpers.static
+* New example : upload.rb
+* The database' configuration file is no more relative to the root directory but to the main file
+
+=== 0.8.1
+* Sorry for 0.8.0 !!
+
+=== 0.8.0
+* Bugs corrections in haml and text renderer
+* Text renderer is now automaticaly included
+* Add sass renderer
+* :working_directory is no more available
+* :root is now the real root directory
+* Add :static option to set the directory for static files
+* Add -r and -s (for root and static directories) options
+* Add static renderer
+
+=== 0.7.1
+* You need to include Capcode::Resource in your models !!!!
+* Add option --version
+
+=== 0.7.0
+* You no more need to include Capcode::Resource in your models
+* Capcode.run now accept a block. The content of the block is executed just before the server start.
+* Add options support : you can now change the defaults port and host, daemonize or not and run in console mode.
+
+=== 0.6.2
+* Add Markaby, Erb and Haml layout see Capcode::Helpers.render for more informations
+* Add content_for...
+* Major bugs corrections
+
+=== 0.6.1
+* Major bugs corrections in haml and erb renderer ($%&! Windows)
+* Major bugs corrections in Route.call
+* Add Markaby layout support
+* Rewrite blog-couchdb example (based on the very sympatic camping example : http://github.com/judofyr/camping/blob/master/examples/blog.rb)
+
+=== 0.6.0
+* Add :root option to Capcode.run. This option allow you to specify the root directory for static files
+* Add :working_directory option to Capcode.run. This option allow you to specify the working directory
+* If '/' route is not defined but /index.html exist, display index
+* add mime-types dependency
+* Bug correction in erb and haml renderer
+
+=== 0.5.0
+* Add Haml and Markaby renderer
+* json is deprecated and replaced by render( :json => ... )
+
+=== 0.4.0
+* Major bug correction !
+* Add views...
+
+=== 0.3.0
+* Work with Rack 1.0.0
+
+=== 0.2.0
+* Add models with DataMapper and couch_foo
+* Add two new options : :daemonize and :pid
+* Bug correction in Route.
+
+=== 0.1.0
+* First public release
+* No models !!!
+
+== SYNOPSIS:
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+
+  module Capcode
+    class Hello < Route '/hello'
+      def get
+        "Hello World #{Time.now} !"
+      end
+    end
+  end
+  
+  Capcode.run( )
+
+=== Running Capcode Apps
+
+* Run: <tt>ruby sample.rb</tt>
+* Visit http://localhost:3000/
+
+=== Create model
+
+  require 'rubygems'
+  require 'capcode'
+  require 'capcode/base/dm' # or require 'capcode/base/couchdb'
+
+  class Story < Capcode::Base
+    include Capcode::Resource
+
+    property :id, Integer, :serial => true # only with DataMapper !
+    property :title, String
+    property :body, String
+    property :date, String
+  end
+
+See <tt>examples/blog-dm.rb</tt> and/or <tt>examples/blog-couchdb.rb</tt> for complete examples.
+
+=== Create View
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+  
+  module Capcode
+    class Hello < Route '/hello'
+      def get
+        @t = Time.now
+        render :time
+      end
+    end
+  end
+  
+  module Capcode::Views
+    def time
+      "Hello world #{@t}"
+    end
+  end
+  
+  Capcode.run( )
+
+=== Create Helper
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+  
+  module Capcode
+    class Hello < Route '/hello'
+      def get
+        @t = Time.now
+        render :time
+      end
+    end
+  end
+  
+  module Capcode::Helpers
+    def bold( &b )
+      "<b>"+yield+"</b>"
+    end
+  end
+  
+  module Capcode::Views
+    def time
+      "Hello world " + bold { @t }
+    end
+  end
+  
+  Capcode.run( )
+  
+=== Render with Markaby
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+  require 'capcode/render/markaby'
+  
+  module Capcode
+    class Hello < Route '/hello'
+      def get
+        @t = Time.now
+        render :markaby => :time
+      end
+    end
+  end
+  
+  module Capcode::Views
+    def time
+      # We use Markaby in Capcode::Views.time
+      html do
+        body do
+          p {
+            text "Hello World "
+            b @t
+          }
+        end
+      end
+    end
+  end
+
+  Capcode.run( )
+
+=== Render with Haml
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+  require 'capcode/render/haml'
+  Capcode::Helpers.haml_path = "./my_haml_views"
+
+  module Capcode
+    class Hello < Route '/hello'
+      def get
+        @t = Time.now
+        render :haml => :time
+      end
+    end
+  end
+  
+  Capcode.run( )
+  
+  # ./my_haml_views/time.haml
+  %html
+    %body
+      %p 
+        Hello World 
+        = @t
+
+=== Render with JSON
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+  require 'capcode/render/json'
+
+  module Capcode
+    class Hello < Route '/hello'
+      def get
+        @t = Time.now
+        render :json => { :time => @t }
+      end
+    end
+  end
+
+  Capcode.run( )
+
+== REQUIREMENTS:
+
+* rack
+
+== INSTALL:
+
+  sudo gem install capcode
+
+== LICENSE:
+
+Capcode is freely distributable according to the terms of the
+GNU General Public License.
+
+This program is distributed without any warranty. See the file
+'COPYING' for details.
+
