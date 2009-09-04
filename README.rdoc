@@ -2,7 +2,9 @@
 
 Copyright (C) 2009 Gregoire Lejeune
 
-* http://capcode.rubyforge.org
+* home : http://capcode.rubyforge.org
+* doc : http://rdoc.info/projects/glejeune/Capcode
+* book (fr) : http://www.algorithmique.net/capcode/
   
 == DESCRIPTION: 
 
