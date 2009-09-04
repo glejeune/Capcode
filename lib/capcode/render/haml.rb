@@ -4,7 +4,7 @@ module Capcode
   module Helpers
     @@__HAML_PATH__ = nil
     # Set the path to Haml files. If this path is not set, Capcode will search in the static path.
-    def self.haml_path=( p )
+    def self.haml_path=( p ) #:nodoc:
       @@__HAML_PATH__ = p
     end
     

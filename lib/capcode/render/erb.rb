@@ -5,7 +5,7 @@ module Capcode
     @@__ERB_PATH__ = "."
     
     # Set the path to ERB files. If this path is not set, Capcode will search in the static path.
-    def self.erb_path=( p )
+    def self.erb_path=( p ) #:nodoc:
       @@__ERB_PATH__ = p
     end
     

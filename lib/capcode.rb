@@ -19,6 +19,7 @@ module Capcode
   #   @@__FILTERS << opts
   # end
   
+  
   class ParameterError < ArgumentError #:nodoc: all
   end
   

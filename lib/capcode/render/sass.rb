@@ -5,7 +5,7 @@ module Capcode
     @@__SASS_PATH__ = "."
     
     # Set the path to Sass files. If this path is not set, Capcode will search in the static path.
-    def self.sass_path=( p )
+    def self.sass_path=( p ) #:nodoc:
       @@__SASS_PATH__ = p
     end
     
