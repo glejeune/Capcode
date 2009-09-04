@@ -10,6 +10,12 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.8.4
+* Major (really MAJOR) bugs corrections in renderers
+* Add many renderer' examples
+* The static rendere now accept a new option : :exact_path. If :exact_path is set to true, the static rendere redirect you to the exact static url of the file. Else it just give the content of the file. Default is true. (see example render-static.rb) 
+* redirect now accept an optional HTTP status code as first parameter
+
 === 0.8.3
 * Add PUT and DELETE actions (see rest example)
 

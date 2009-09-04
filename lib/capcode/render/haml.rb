@@ -10,7 +10,7 @@ module Capcode
     
     def render_haml( f, opts ) #:nodoc:
       if @@__HAML_PATH__.nil?
-        @@__HAML_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static:''
+        @@__HAML_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static():''
       end
       
       f = f.to_s

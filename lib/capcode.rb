@@ -65,9 +65,13 @@ module Capcode
             render_type = k
           end
         end
-
+        
         if render_type.nil?
           raise Capcode::RenderError, "Renderer type not specified!", caller
+        end
+
+        unless self.respond_to?("render_#{render_type.to_s}")
+          raise Capcode::RenderError, "#{render_type} renderer not present ! please require 'capcode/render/#{render_type}'", caller
         end
 
         render_name = h.delete(render_type)
@@ -112,8 +116,29 @@ module Capcode
     #       end
     #     end    
     #   end
+    #
+    # The first parameter can be a controller class name
+    #
+    #   redirect( MyController )
+    #
+    # it can be a string path
+    #
+    #   redirect( "/path/to/my/resource" )
+    #
+    # it can be an http status code (by default <tt>redirect</tt> use the http status code 302)
+    #
+    #   redirect( 304, MyController )
+    # 
+    # For more informations about HTTP status, see http://en.wikipedia.org/wiki/List_of_HTTP_status_codes#3xx_Redirection
     def redirect( klass, *a )
-      [302, {'Location' => URL(klass, *a)}, '']
+      httpCode = 302
+
+      if( klass.class == Fixnum )
+        httpCode = klass
+        klass = a.shift
+      end
+
+      [httpCode, {'Location' => URL(klass, *a)}, '']
     end
     
     # Builds an URL route to a controller or a path
@@ -249,27 +274,35 @@ module Capcode
     # If the regexp in the route does not match, all arguments will be <tt>nil</tt>
     def Route *u
       Class.new {
-        meta_def(:__urls__){
-          # < Route '/hello/world/([^\/]*)/id(\d*)', '/hello/(.*)'
-          # # => [ {'/hello/world' => '([^\/]*)/id(\d*)', '/hello' => '(.*)'}, 2, <Capcode::Klass> ]
+        meta_def(:__urls__) {
+          # < Route '/hello/world/([^\/]*)/id(\d*)', '/hello/(.*)', :agent => /Songbird (\d\.\d)[\d\/]*?/
+          # # => [ {'/hello/world' => '([^\/]*)/id(\d*)', '/hello' => '(.*)'}, 
+          #        2, 
+          #        <Capcode::Klass>, 
+          #        {:agent => /Songbird (\d\.\d)[\d\/]*?/} ]
           h = {}
+          o = {}
           max = 0
           u.each do |_u|
-            m = /\/([^\/]*\(.*)/.match( _u )
-            if m.nil?
-              raise Capcode::RouteError, "Route `#{_u}' already defined with regexp `#{h[_u]}' !", caller if h.keys.include?(_u)
-              h[_u] = ''
+            if _u.class == String
+              m = /\/([^\/]*\(.*)/.match( _u )
+              if m.nil?
+                raise Capcode::RouteError, "Route `#{_u}' already defined with regexp `#{h[_u]}' !", caller if h.keys.include?(_u)
+                h[_u] = ''
+              else
+                _pre = m.pre_match
+                _pre = "/" if _pre.size == 0
+                raise Capcode::RouteError, "Route `#{_pre}' already defined with regexp `#{h[_pre]}' !", caller if h.keys.include?(_pre)
+                h[_pre] = m.captures[0]
+                max = Regexp.new(m.captures[0]).number_of_captures if max < Regexp.new(m.captures[0]).number_of_captures
+              end
             else
-              _pre = m.pre_match
-              _pre = "/" if _pre.size == 0
-              raise Capcode::RouteError, "Route `#{_pre}' already defined with regexp `#{h[_pre]}' !", caller if h.keys.include?(_pre)
-              h[_pre] = m.captures[0]
-              max = Regexp.new(m.captures[0]).number_of_captures if max < Regexp.new(m.captures[0]).number_of_captures
+              raise Capcode::ParameterError, "Bad route declaration !", caller
             end
           end
           [h, max, self]
         }
-
+                
         # Hash containing all the request parameters (GET or POST)
         def params
           @request.params
@@ -571,6 +604,6 @@ module Capcode
     
     def static #:nodoc:
       @@__STATIC_DIR
-    end
+    end    
   end
 end

@@ -3,18 +3,16 @@ require "markaby"
 Markaby::Builder.set(:indent, 2)
 
 module Capcode
-  module Markaby #:nodoc: all
-    class Builder 
-      include Views
-    end
+  class Mab < Markaby::Builder
+    include Views
   end
   
   module Helpers
     def render_markaby( f, opts ) #:nodoc:
       f = f.to_s
       layout = opts.delete(:layout)||:layout
-      
-      mab = Markaby::Builder.new({}, self) { 
+
+      __mab = Mab.new({}, self) { 
         if self.respond_to?(layout)
           self.send(layout.to_s) { |*args| 
             @@__ARGS__ = args
@@ -24,7 +22,7 @@ module Capcode
           self.send(f) 
         end
       }
-      mab.to_s  
+      __mab.to_s  
     end
   end
 end

@@ -15,7 +15,7 @@ module Capcode
     
     def render_erb( f, opts ) #:nodoc:
       if @@__ERB_PATH__.nil?
-        @@__ERB_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static:''
+        @@__ERB_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static():''
       end
       
       f = f.to_s

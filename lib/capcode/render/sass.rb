@@ -11,7 +11,7 @@ module Capcode
     
     def render_sass( f, _ ) #:nodoc:
       if @@__SASS_PATH__.nil?
-        @@__SASS_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static:''
+        @@__SASS_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static():''
       end
       
       f = f.to_s
