@@ -34,6 +34,6 @@ module Capcode::Views
   end
 end
 
-FileUtils.mkdir_p 'data'
-
-Capcode.run( :static => "data" )
+Capcode.run( :static => "data" ) {
+  FileUtils.mkdir_p 'data'
+}
