@@ -54,16 +54,16 @@ module Capcode
     #
     # If you want to use a specific layout, you can specify it with option 
     #   :layout
-    def render( h )
-      if h.class == Hash
+    def render( hash )
+      if hash.class == Hash
         render_type = nil
         
-        h.keys.each do |k|
-          if self.respond_to?("render_#{k.to_s}")
+        hash.keys.each do |key|
+          if self.respond_to?("render_#{key.to_s}")
             unless render_type.nil?
-              raise Capcode::RenderError, "Can't use multiple renderer (`#{render_type}' and `#{k}') !", caller
+              raise Capcode::RenderError, "Can't use multiple renderer (`#{render_type}' and `#{key}') !", caller
             end
-            render_type = k
+            render_type = key
           end
         end
         
@@ -75,15 +75,15 @@ module Capcode
           raise Capcode::RenderError, "#{render_type} renderer not present ! please require 'capcode/render/#{render_type}'", caller
         end
 
-        render_name = h.delete(render_type)
+        render_name = hash.delete(render_type)
 
         begin
-          self.send( "render_#{render_type.to_s}", render_name, h )
+          self.send( "render_#{render_type.to_s}", render_name, hash )
         rescue => e
           raise Capcode::RenderError, "Error rendering `#{render_type.to_s}' : #{e.message}", caller
         end
       else
-        render( :text => h )
+        render( :text => hash )
       end
     end
     
@@ -273,7 +273,7 @@ module Capcode
     # be set to <tt>you</tt> and <tt>arg2</tt> will be set to <tt>nil</tt>
     # 
     # If the regexp in the route does not match, all arguments will be <tt>nil</tt>
-    def Route *u
+    def Route *routes_paths
       Class.new {
         meta_def(:__urls__) {
           # < Route '/hello/world/([^\/]*)/id(\d*)', '/hello/(.*)', :agent => /Songbird (\d\.\d)[\d\/]*?/
@@ -281,27 +281,26 @@ module Capcode
           #        2, 
           #        <Capcode::Klass>, 
           #        {:agent => /Songbird (\d\.\d)[\d\/]*?/} ]
-          h = {}
-          o = {}
-          max = 0
-          u.each do |_u|
-            if _u.class == String
-              m = /\/([^\/]*\(.*)/.match( _u )
+          hash_of_routes = {}
+          max_captures_for_routes = 0
+          routes_paths.each do |current_route_path|
+            if current_route_path.class == String
+              m = /\/([^\/]*\(.*)/.match( current_route_path )
               if m.nil?
-                raise Capcode::RouteError, "Route `#{_u}' already defined with regexp `#{h[_u]}' !", caller if h.keys.include?(_u)
-                h[_u] = ''
+                raise Capcode::RouteError, "Route `#{current_route_path}' already defined with regexp `#{hash_of_routes[current_route_path]}' !", caller if hash_of_routes.keys.include?(current_route_path)
+                hash_of_routes[current_route_path] = ''
               else
                 _pre = m.pre_match
                 _pre = "/" if _pre.size == 0
-                raise Capcode::RouteError, "Route `#{_pre}' already defined with regexp `#{h[_pre]}' !", caller if h.keys.include?(_pre)
-                h[_pre] = m.captures[0]
-                max = Regexp.new(m.captures[0]).number_of_captures if max < Regexp.new(m.captures[0]).number_of_captures
+                raise Capcode::RouteError, "Route `#{_pre}' already defined with regexp `#{hash_of_routes[_pre]}' !", caller if hash_of_routes.keys.include?(_pre)
+                hash_of_routes[_pre] = m.captures[0]
+                max_captures_for_routes = Regexp.new(m.captures[0]).number_of_captures if max_captures_for_routes < Regexp.new(m.captures[0]).number_of_captures
               end
             else
               raise Capcode::ParameterError, "Bad route declaration !", caller
             end
           end
-          [h, max, self]
+          [hash_of_routes, max_captures_for_routes, self]
         }
                 
         # Hash containing all the request parameters (GET or POST)
@@ -411,8 +410,8 @@ module Capcode
     #   Capcode.map( "/file" ) do
     #     Rack::File.new( "." )
     #   end
-    def map( r, &b )
-      @@__ROUTES[r] = yield
+    def map( route, &b )
+      @@__ROUTES[route] = yield
     end
   
     # Start your application.
@@ -513,10 +512,10 @@ module Capcode
         Capcode.constants.each do |k|
           begin
             if eval "Capcode::#{k}.public_methods(true).include?( '__urls__' )"
-              u, m, c = eval "Capcode::#{k}.__urls__"
-              u.keys.each do |_u|
-                raise Capcode::RouteError, "Route `#{_u}' already define !", caller if @@__ROUTES.keys.include?(_u)
-                @@__ROUTES[_u] = c.new
+              hash_of_routes, max_captures_for_routes, klass = eval "Capcode::#{k}.__urls__"
+              hash_of_routes.keys.each do |current_route_path|
+                raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if @@__ROUTES.keys.include?(current_route_path)
+                @@__ROUTES[current_route_path] = klass.new
               end
             end
           rescue => e
