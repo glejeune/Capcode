@@ -1,3 +1,3 @@
 module Capcode
-  CAPCOD_VERION="0.8.4"
+  CAPCOD_VERION="0.8.5"
 end

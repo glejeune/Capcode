@@ -12,6 +12,9 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.8.5
+* Capcode now work with Phusion Passenger \o/
+
 === 0.8.4
 * Major (really MAJOR) bugs corrections in renderers
 * Add many renderer' examples
@@ -253,6 +256,28 @@ See <tt>examples/blog-dm.rb</tt> and/or <tt>examples/blog-couchdb.rb</tt> for co
   end
 
   Capcode.run( )
+
+== DEPLOYMENT
+
+=== With Passenger
+
+First create the directory structure :
+
+  my_app/
+  my_app/tmp
+  my_app/public
+	
+Then put your app in <tt>my_app/</tt> and comment or remove the line with <tt>Capcode.run</tt>
+
+Create a rack configuration file (<tt>config.ru</tt>) in <tt>my_app/</tt>
+
+  require 'app'
+  run Capcode.application()
+
+<tt>Capcode.application</tt> take the same parameters as <tt>Capcode.run</tt> (and block too). Be carefull, if you use
+static files (with the static renderer) you must set the <tt>:root</tt> option (<tt>:root => File.expand_path(File.dirname(__FILE__))</tt> is probably good)
+
+You can now deploy your application like a {"Rack-based Ruby application"}[http://www.modrails.com/documentation/Users%20guide.html#_deploying_a_rack_based_ruby_application]
 
 == REQUIREMENTS:
 

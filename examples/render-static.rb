@@ -15,4 +15,4 @@ module Capcode
   end  
 end
 
-Capcode.run( :static => "static" )
+Capcode.run( :static => "static", :verbose => true )

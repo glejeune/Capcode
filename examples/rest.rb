@@ -74,4 +74,4 @@ module Capcode::Views
   
 end
 
-Capcode.run( )
+#Capcode.run( )

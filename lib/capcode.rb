@@ -167,7 +167,7 @@ module Capcode
         path = klass
       end
       
-      path+((a.size>0)?("/"+a.join("/")):(""))
+      (ENV['RACK_BASE_URI']||'')+path+((a.size>0)?("/"+a.join("/")):(""))
     end
     
     # Calling content_for stores a block of markup in an identifier.
@@ -414,6 +414,87 @@ module Capcode
       @@__ROUTES[route] = yield
     end
   
+    def configuration( args = {} ) #:nodoc:
+      {
+        :port => args[:port]||3000, 
+        :host => args[:host]||"localhost",
+        :server => args[:server]||nil,
+        :log => args[:log]||$stdout,
+        :session => args[:session]||{},
+        :pid => args[:pid]||"#{$0}.pid",
+        :daemonize => args[:daemonize]||false,
+        :db_config => File.expand_path(args[:db_config]||"database.yml"),
+        :static => args[:static]||nil,
+        :root => args[:root]||File.expand_path(File.dirname($0)),
+        :verbose => args[:verbose]||false,
+        :console => false
+      }
+    end
+    
+    # Return the Rack App.
+    # 
+    # Options :
+    # * <tt>:port</tt> = Listen port 
+    # * <tt>:host</tt> = Listen host
+    # * <tt>:server</tt> = Server type (webrick or mongrel)
+    # * <tt>:log</tt> = Output logfile (default: STDOUT)
+    # * <tt>:session</tt> = Session parameters. See Rack::Session for more informations
+    # * <tt>:pid</tt> = PID file (default: $0.pid)
+    # * <tt>:daemonize</tt> = Daemonize application (default: false)
+    # * <tt>:db_config</tt> = database configuration file (default: database.yml)
+    # * <tt>:static</tt> = Static directory (default: none -- relative to the working directory)
+    # * <tt>:root</tt> = Root directory (default: directory of the main.rb) -- This is also the working directory !
+    # * <tt>:verbose</tt> = run in verbose mode
+    def application( args = {} )
+      conf = configuration(args)
+      
+      Capcode.constants.each do |k|
+        begin
+          if eval "Capcode::#{k}.public_methods(true).include?( '__urls__' )"
+            hash_of_routes, max_captures_for_routes, klass = eval "Capcode::#{k}.__urls__"
+            hash_of_routes.keys.each do |current_route_path|
+              raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if @@__ROUTES.keys.include?(current_route_path)
+              @@__ROUTES[current_route_path] = klass.new
+            end
+          end
+        rescue => e
+          raise e.message
+        end
+      end
+      
+      # Set Static directory
+      @@__STATIC_DIR = (conf[:static][0].chr == "/")?conf[:static]:"/"+conf[:static] unless conf[:static].nil?
+      
+      # Initialize Rack App
+      puts "** Map routes." if conf[:verbose]
+      app = Rack::URLMap.new(@@__ROUTES)
+      puts "** Initialize static directory (#{conf[:static]})" if conf[:verbose]
+      app = Rack::Static.new( 
+        app, 
+        :urls => [@@__STATIC_DIR], 
+        :root => File.expand_path(conf[:root]) 
+      ) unless conf[:static].nil?
+      puts "** Initialize session" if conf[:verbose]
+      app = Rack::Session::Cookie.new( app, conf[:session] )
+      app = Capcode::HTTPError.new(app)
+      app = Rack::ContentLength.new(app)
+      app = Rack::Lint.new(app)
+      app = Rack::ShowExceptions.new(app)
+      #app = Rack::Reloader.new(app) ## -- NE RELOAD QUE capcode.rb -- So !!!
+      # app = Rack::CommonLogger.new( app, Logger.new(conf[:log]) )
+      
+      # Start database
+      if self.methods.include? "db_connect"
+        db_connect( conf[:db_config], conf[:log] )
+      end
+      
+      if block_given?
+        yield( self )
+      end
+      
+      return app
+    end
+    
     # Start your application.
     # 
     # Options :
@@ -427,23 +508,9 @@ module Capcode
     # * <tt>:db_config</tt> = database configuration file (default: database.yml)
     # * <tt>:static</tt> = Static directory (default: none -- relative to the working directory)
     # * <tt>:root</tt> = Root directory (default: directory of the main.rb) -- This is also the working directory !
+    # * <tt>:verbose</tt> = run in verbose mode
     def run( args = {} )
-      __VERBOSE = false
-      
-      conf = {
-        :port => args[:port]||3000, 
-        :host => args[:host]||"localhost",
-        :server => args[:server]||nil,
-        :log => args[:log]||$stdout,
-        :session => args[:session]||{},
-        :pid => args[:pid]||"#{$0}.pid",
-        :daemonize => args[:daemonize]||false,
-        :db_config => File.expand_path(args[:db_config]||"database.yml"),
-        :static => args[:static]||nil,
-        :root => args[:root]||File.expand_path(File.dirname($0)),
-        
-        :console => false
-      }
+      conf = configuration(args)
       
       # Parse options
       opts = OptionParser.new do |opts|
@@ -482,7 +549,7 @@ module Capcode
           exit
         end  
         opts.on_tail( "-V", "--verbose", "Run in verbose mode" ) do
-          __VERBOSE = true
+          conf[:verbose] = true
         end
       end
       
@@ -495,7 +562,7 @@ module Capcode
       end
       
       # Run in the Working directory
-      puts "** Go on root directory (#{File.expand_path(conf[:root])})" if __VERBOSE
+      puts "** Go on root directory (#{File.expand_path(conf[:root])})" if conf[:verbose]
       Dir.chdir( conf[:root] ) do
         
         # Check that mongrel exists 
@@ -508,41 +575,6 @@ module Capcode
             conf[:server] = "webrick"
           end
         end
-            
-        Capcode.constants.each do |k|
-          begin
-            if eval "Capcode::#{k}.public_methods(true).include?( '__urls__' )"
-              hash_of_routes, max_captures_for_routes, klass = eval "Capcode::#{k}.__urls__"
-              hash_of_routes.keys.each do |current_route_path|
-                raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if @@__ROUTES.keys.include?(current_route_path)
-                @@__ROUTES[current_route_path] = klass.new
-              end
-            end
-          rescue => e
-            raise e.message
-          end
-        end
-        
-        # Set Static directory
-        @@__STATIC_DIR = (conf[:static][0].chr == "/")?conf[:static]:"/"+conf[:static] unless conf[:static].nil?
-        
-        # Initialize Rack App
-        puts "** Map routes." if __VERBOSE
-        app = Rack::URLMap.new(@@__ROUTES)
-        puts "** Initialize static directory (#{conf[:static]})" if __VERBOSE
-        app = Rack::Static.new( 
-          app, 
-          :urls => [@@__STATIC_DIR], 
-          :root => File.expand_path(conf[:root]) 
-        ) unless conf[:static].nil?
-        puts "** Initialize session" if __VERBOSE
-        app = Rack::Session::Cookie.new( app, conf[:session] )
-        app = Capcode::HTTPError.new(app)
-        app = Rack::ContentLength.new(app)
-        app = Rack::Lint.new(app)
-        app = Rack::ShowExceptions.new(app)
-#        app = Rack::Reloader.new(app) ## -- NE RELOAD QUE capcode.rb -- So !!!
-        app = Rack::CommonLogger.new( app, Logger.new(conf[:log]) )
         
         # From rackup !!!
         if conf[:daemonize]
@@ -567,14 +599,13 @@ module Capcode
           at_exit { File.delete(conf[:pid]) if File.exist?(conf[:pid]) }
         end
         
-        # Start database
-        if self.methods.include? "db_connect"
-          db_connect( conf[:db_config], conf[:log] )
-        end
-        
+        app = nil
         if block_given?
-          yield( self )
+          app = application(conf) { yield( self ) }
+        else
+          app = application(conf)
         end
+        app = Rack::CommonLogger.new( app, Logger.new(conf[:log]) )
         
         if conf[:console]
           puts "Run console..."
