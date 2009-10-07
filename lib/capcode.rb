@@ -51,9 +51,13 @@ module Capcode
     # * :json => MyObject : this suppose that's MyObject respond to .to_json
     # * :static => "my_file.xxx" : this suppose that's my_file.xxx exist in the static directory
     # * :xml => :my_func : :my_func must be defined in Capcode::Views
+    # * :webdav => /path/to/root
     #
     # If you want to use a specific layout, you can specify it with option 
     #   :layout
+    #
+    # If you use the WebDav renderer, you can use the option 
+    #   :resource_class (see http://github.com/georgi/rack_dav for more informations)
     def render( hash )
       if hash.class == Hash
         render_type = nil
@@ -386,6 +390,9 @@ module Capcode
             when "POST"
               _method = params.delete( "_method" ) { |_| "post" }
               send( _method.downcase.to_sym )
+            else
+              _method = @env["REQUEST_METHOD"]
+              send( _method.downcase.to_sym )
           end
           if r.respond_to?(:to_ary)
             @response.status = r[0]
@@ -417,7 +424,7 @@ module Capcode
     def configuration( args = {} ) #:nodoc:
       {
         :port => args[:port]||3000, 
-        :host => args[:host]||"localhost",
+        :host => args[:host]||"0.0.0.0",
         :server => args[:server]||nil,
         :log => args[:log]||$stdout,
         :session => args[:session]||{},
@@ -426,6 +433,7 @@ module Capcode
         :db_config => File.expand_path(args[:db_config]||"database.yml"),
         :static => args[:static]||nil,
         :root => args[:root]||File.expand_path(File.dirname($0)),
+        :static => args[:static]||args[:root]||File.expand_path(File.dirname($0)),
         :verbose => args[:verbose]||false,
         :console => false
       }
@@ -433,18 +441,7 @@ module Capcode
     
     # Return the Rack App.
     # 
-    # Options :
-    # * <tt>:port</tt> = Listen port 
-    # * <tt>:host</tt> = Listen host
-    # * <tt>:server</tt> = Server type (webrick or mongrel)
-    # * <tt>:log</tt> = Output logfile (default: STDOUT)
-    # * <tt>:session</tt> = Session parameters. See Rack::Session for more informations
-    # * <tt>:pid</tt> = PID file (default: $0.pid)
-    # * <tt>:daemonize</tt> = Daemonize application (default: false)
-    # * <tt>:db_config</tt> = database configuration file (default: database.yml)
-    # * <tt>:static</tt> = Static directory (default: none -- relative to the working directory)
-    # * <tt>:root</tt> = Root directory (default: directory of the main.rb) -- This is also the working directory !
-    # * <tt>:verbose</tt> = run in verbose mode
+    # Options : same has Capcode.run
     def application( args = {} )
       conf = configuration(args)
       
@@ -498,8 +495,8 @@ module Capcode
     # Start your application.
     # 
     # Options :
-    # * <tt>:port</tt> = Listen port 
-    # * <tt>:host</tt> = Listen host
+    # * <tt>:port</tt> = Listen port (default: 3000)
+    # * <tt>:host</tt> = Listen host (default: 0.0.0.0)
     # * <tt>:server</tt> = Server type (webrick or mongrel)
     # * <tt>:log</tt> = Output logfile (default: STDOUT)
     # * <tt>:session</tt> = Session parameters. See Rack::Session for more informations

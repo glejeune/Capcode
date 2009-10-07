@@ -14,6 +14,8 @@ Capcode is a web microframework
 
 === 0.8.5
 * Capcode now work with Phusion Passenger \o/
+* Add WebDAV renderer (need rack_dav)
+* Change default listen host from localhost to 0.0.0.0
 
 === 0.8.4
 * Major (really MAJOR) bugs corrections in renderers
@@ -257,6 +259,36 @@ See <tt>examples/blog-dm.rb</tt> and/or <tt>examples/blog-couchdb.rb</tt> for co
 
   Capcode.run( )
 
+=== Render with WebDAV
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+  require 'capcode/render/webdav'
+  
+  module Capcode
+  
+    # !!! Render file from /Users/greg/temp !!!
+    class WebDav < Route '/temp'
+      def get
+        render :webdav => "/Users/greg"
+      end
+      
+      def method_missing(id, *a, &b)
+        get
+      end
+    end  
+    
+    class Index < Route '/'
+      def get
+        render "WebDav server acces : <a href='#{URL(Capcode::WebDav)}'>#{URL(Capcode::WebDav)}</a>"
+      end
+    end
+    
+  end
+
+Capcode.run( )
+
 == DEPLOYMENT
 
 === With Passenger
@@ -266,7 +298,7 @@ First create the directory structure :
   my_app/
   my_app/tmp
   my_app/public
-	
+  
 Then put your app in <tt>my_app/</tt> and comment or remove the line with <tt>Capcode.run</tt>
 
 Create a rack configuration file (<tt>config.ru</tt>) in <tt>my_app/</tt>
