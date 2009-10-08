@@ -7,11 +7,13 @@ require 'irb'
 require 'mime/types'
 require 'capcode/version'
 require 'capcode/core_ext'
+require 'capcode/helpers/auth'
 require 'capcode/render/text'
 
 module Capcode
   @@__ROUTES = {}
   @@__STATIC_DIR = nil
+  @@__APP = nil
   
   # @@__FILTERS = []
   # def self.before_filter( opts, &b )
@@ -222,6 +224,8 @@ module Capcode
         :path => File.expand_path( File.join(".", Capcode.static ) )
       }
     end
+    
+    include Authorization
   end
   
   include Rack
@@ -352,58 +356,61 @@ module Capcode
           #   puts "call #{proc} for #{__k}"
           # end
 
-          r = case @env["REQUEST_METHOD"]
-            when "GET"
-              finalPath = nil
-              finalArgs = nil
-              finalNArgs = nil
-              
-              aPath = @request.path.gsub( /^\//, "" ).split( "/" )
-              self.class.__urls__[0].each do |p, r|
-                xPath = p.gsub( /^\//, "" ).split( "/" )
-                if (xPath - aPath).size == 0
-                  diffArgs = aPath - xPath
-                  diffNArgs = diffArgs.size
-                  if finalNArgs.nil? or finalNArgs > diffNArgs
-                    finalPath = p
-                    finalNArgs = diffNArgs
-                    finalArgs = diffArgs
+          r = catch(:halt) { 
+            case @env["REQUEST_METHOD"]
+              when "GET"
+                finalPath = nil
+                finalArgs = nil
+                finalNArgs = nil
+                
+                aPath = @request.path.gsub( /^\//, "" ).split( "/" )
+                self.class.__urls__[0].each do |p, r|
+                  xPath = p.gsub( /^\//, "" ).split( "/" )
+                  if (xPath - aPath).size == 0
+                    diffArgs = aPath - xPath
+                    diffNArgs = diffArgs.size
+                    if finalNArgs.nil? or finalNArgs > diffNArgs
+                      finalPath = p
+                      finalNArgs = diffNArgs
+                      finalArgs = diffArgs
+                    end
                   end
+                  
+                end
+            
+                nargs = self.class.__urls__[1]
+                regexp = Regexp.new( self.class.__urls__[0][finalPath] )
+                args = regexp.match( Rack::Utils.unescape(@request.path).gsub( Regexp.new( "^#{finalPath}" ), "" ).gsub( /^\//, "" ) )
+                if args.nil?
+                  raise Capcode::ParameterError, "Path info `#{@request.path_info}' does not match route regexp `#{regexp.source}'"
+                else
+                  args = args.captures.map { |x| (x.size == 0)?nil:x }
                 end
                 
-              end
-
-              nargs = self.class.__urls__[1]
-              regexp = Regexp.new( self.class.__urls__[0][finalPath] )
-              args = regexp.match( Rack::Utils.unescape(@request.path).gsub( Regexp.new( "^#{finalPath}" ), "" ).gsub( /^\//, "" ) )
-              if args.nil?
-                raise Capcode::ParameterError, "Path info `#{@request.path_info}' does not match route regexp `#{regexp.source}'"
+                while args.size < nargs
+                  args << nil
+                end
+                      
+                get( *args )
+              when "POST"
+                _method = params.delete( "_method" ) { |_| "post" }
+                send( _method.downcase.to_sym )
               else
-                args = args.captures.map { |x| (x.size == 0)?nil:x }
-              end
-              
-              while args.size < nargs
-                args << nil
-              end
-                    
-              get( *args )
-            when "POST"
-              _method = params.delete( "_method" ) { |_| "post" }
-              send( _method.downcase.to_sym )
-            else
-              _method = @env["REQUEST_METHOD"]
-              send( _method.downcase.to_sym )
-          end
+                _method = @env["REQUEST_METHOD"]
+                send( _method.downcase.to_sym )
+            end
+          }
           if r.respond_to?(:to_ary)
-            @response.status = r[0]
-            r[1].each do |k,v|
+            @response.status = r.shift #r[0]
+            #r[1].each do |k,v|
+            r.shift.each do |k,v|
               @response[k] = v
             end
-            @response.body = r[2]
+            @response.body = r.shift #r[2]
           else
             @response.write r
           end
-          
+                    
           @response.finish
         end
                 
@@ -506,6 +513,7 @@ module Capcode
     # * <tt>:static</tt> = Static directory (default: none -- relative to the working directory)
     # * <tt>:root</tt> = Root directory (default: directory of the main.rb) -- This is also the working directory !
     # * <tt>:verbose</tt> = run in verbose mode
+    # * <tt>:auth</tt> = HTTP Basic Authentication options
     def run( args = {} )
       conf = configuration(args)
       

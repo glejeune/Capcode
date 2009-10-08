@@ -21,17 +21,12 @@ module Capcode
 		    :resource_class => RackDAV::FileResource,
 		    :root => f
 		  }.merge(opts)
-		  
-		  print "options = ";p options
-		
+		  		
 		  request = Rack::Request.new(env)
 		  response = Rack::Response.new
     
 		  begin
-		    controller = RackDAV::Controller.new(request, response, options.dup)
-		    
-		    print "controller.resource = ";p controller.resource
-		    
+		    controller = RackDAV::Controller.new(request, response, options.dup)		    
 		    controller.send(request.request_method.downcase)
 		  rescue RackDAV::HTTPStatus::Status => status
 		    response.status = status.code

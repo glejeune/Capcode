@@ -33,7 +33,7 @@ Rake::RDocTask.new do |rdoc|
     'COPYING',
     'lib/capcode.rb',
     'lib/capcode/base/db.rb'
-  ] + Dir.glob( "lib/capcode/render/*.rb" )
+  ] + Dir.glob( "lib/capcode/render/*.rb" ) + Dir.glob( "lib/capcode/helpers/*.rb" )
 end
 
 task :after_doc do

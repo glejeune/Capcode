@@ -14,8 +14,9 @@ Capcode is a web microframework
 
 === 0.8.5
 * Capcode now work with Phusion Passenger \o/
-* Add WebDAV renderer (need rack_dav)
+* Add WebDAV renderer (need rack_dav) (see examples render-webdav.rb and auth-webdav.rb)
 * Change default listen host from localhost to 0.0.0.0
+* Add require_auth helper for basic or digest HTTP Authentication (see examples auth-basic.rb and auth-digest.rb)
 
 === 0.8.4
 * Major (really MAJOR) bugs corrections in renderers
