@@ -262,7 +262,7 @@ module Capcode
   end
     
   class << self
-    attr :__args__, true
+    attr :__auth__, true
     
     # Add routes to a controller class
     # 
@@ -356,7 +356,32 @@ module Capcode
           #   puts "call #{proc} for #{__k}"
           # end
 
+          # Check authz
+          authz_options = nil
+          if Capcode.__auth__.size > 0
+            authz_options = Capcode.__auth__[@request.path]||nil
+            if authz_options.nil?
+              route = nil
+              
+              Capcode.__auth__.each do |r, o|
+                regexp = "^#{r.gsub(/\/$/, "")}([/]{1}.*)?$"
+                if Regexp.new(regexp).match( @request.path )
+                  if route.nil? or r.size > route.size
+                    route = r
+                    authz_options = o
+                  end
+                end  
+              end
+            end
+          end
+
           r = catch(:halt) { 
+            unless authz_options.nil?
+              http_authentication( :type => authz_options[:type], :realm => authz_options[:realm], :opaque => authz_options[:realm] ) { 
+                authz_options[:autz]
+              }
+            end
+
             case @env["REQUEST_METHOD"]
               when "GET"
                 finalPath = nil
@@ -426,6 +451,41 @@ module Capcode
     #   end
     def map( route, &b )
       @@__ROUTES[route] = yield
+    end
+
+    # Allow you to add and HTTP Authentication (Basic or Digest) to controllers for or specific route
+    # 
+    # Options :
+    # * <tt>:type</tt> : Authentication type (<tt>:basic</tt> or <tt>:digest</tt>) - default : <tt>:basic</tt>
+    # * <tt>:realm</tt> : realm ;) - default : "Capcode.app"
+    # * <tt>:opaque</tt> : Your secret passphrase. You MUST set it if you use Digest Auth - default : "opaque"
+    # * <tt>:routes</tt> : Routes - default : "/"
+    #
+    # The block must return a Hash of username => password like that :
+    #   {
+    #     "user1" => "pass1",
+    #     "user2" => "pass2",
+    #     # ...
+    #   }
+    def http_authentication( opts = {}, &b )
+      options = {
+        :type => :basic,
+        :realm => "Capcode.app",
+        :opaque => "opaque",
+        :routes => "/"
+      }.merge( opts )
+      
+      options[:autz] = b.call()
+      
+      @__auth__ ||= {}
+      
+      if options[:routes].class == Array
+        options[:routes].each do |r|
+          @__auth__[r] = options
+        end
+      else
+        @__auth__[options[:routes]] = options
+      end      
     end
   
     def configuration( args = {} ) #:nodoc:

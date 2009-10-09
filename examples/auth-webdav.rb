@@ -7,7 +7,7 @@ module Capcode
   # Render file from /Users/greg/temp !!!
   class WebDav < Route '/temp'
     def get
-      http_authentication( :realm => "My WebDAV Directory !!!" ) { 
+      http_authentication( :type => :digest, :realm => "My WebDAV Directory !!!" ) { 
         {"greg" => "toto"}
       }
       render :webdav => "/Users/greg"
