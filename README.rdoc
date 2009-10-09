@@ -12,6 +12,9 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.8.6
+* HUGE bug correction
+
 === 0.8.5
 * Capcode now work with Phusion Passenger \o/
 * Add WebDAV renderer (need rack_dav) (see examples render-webdav.rb and auth-webdav.rb)

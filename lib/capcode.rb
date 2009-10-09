@@ -358,7 +358,7 @@ module Capcode
 
           # Check authz
           authz_options = nil
-          if Capcode.__auth__.size > 0
+          if Capcode.__auth__ and Capcode.__auth__.size > 0
             authz_options = Capcode.__auth__[@request.path]||nil
             if authz_options.nil?
               route = nil
