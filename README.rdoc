@@ -12,6 +12,8 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.8.7
+
 === 0.8.6
 * HUGE bug correction
 
@@ -291,7 +293,72 @@ See <tt>examples/blog-dm.rb</tt> and/or <tt>examples/blog-couchdb.rb</tt> for co
     
   end
 
-Capcode.run( )
+  Capcode.run( )
+
+=== HTTP Authentication
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+
+  module Capcode
+    class Public < Route '/public'
+      def get
+        render "This page is not protected"
+      end
+    end
+
+    class Private < Route '/private'
+      def get
+        http_authentication( :type => :digest, :realm => "Private part" ) { 
+          { "greg" => "p4ssw0rd" }
+        }
+      
+        render "This page is private - Hello #{request.env['REMOTE_USER']}"
+      end
+    end
+  end
+
+  Capcode.run( )
+
+Second example :
+
+  # file: sample.rb
+  require 'rubygems'
+  require 'capcode'
+  
+  module Capcode
+
+    http_authentication( :type => :digest, :realm => "Private part", :routes => ['/admin', '/private'] ) { 
+      { "greg" => "p4ssw0rd" }
+    }
+
+    class Public < Route '/public'
+      def get
+        render "This page is not protected"
+      end
+    end
+  
+    class Private < Route '/private'
+      def get
+        render "This page is private - Hello #{request.env['REMOTE_USER']}"
+      end
+    end
+
+    class PrivateAgain < Route '/private/again'
+      def get
+        render "This page is also private - Hello #{request.env['REMOTE_USER']}"
+      end
+    end
+
+    class Admin < Route '/admin'
+      def get
+        render "This page is private - Hello #{request.env['REMOTE_USER']}"
+      end
+    end
+  end
+  
+  Capcode.run( )
 
 == DEPLOYMENT
 
