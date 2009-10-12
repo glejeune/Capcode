@@ -15,7 +15,5 @@ module Capcode
   end  
 end
 
-puts __FILE__
-
 ## WARNING : when using rackup, :root default is the rackup directory (eg. /usr/bin or something like that) !
 run Capcode.application( :static => "static", :verbose => true, :root => File.expand_path(File.dirname(__FILE__)) )
