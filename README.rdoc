@@ -13,6 +13,7 @@ Capcode is a web microframework
 == FEATURES/PROBLEMS:
 
 === 0.8.7
+* Route's captures are now passed to all methods in a coontroller
 
 === 0.8.6
 * HUGE bug correction

@@ -23,6 +23,9 @@ class HomepageTest < Test::Unit::TestCase
   def test_redirect
     get '/r'
     
+    puts last_request
+    puts last_response
+    
     assert_equal "http://example.org/r", last_request.url
     follow_redirect!
     assert_equal "http://example.org/", last_request.url

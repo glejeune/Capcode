@@ -85,8 +85,9 @@ module Capcode
         redirect( Index )
       end
     end
-    def post
-      story = Story.find( params['id'] )
+    def post( id )
+      # story = Story.find( params['id'] )
+      story = Story.find( id )
       story.title = params['title']
       story.body = params['body']
       story.save
@@ -143,7 +144,7 @@ module Capcode::Views
       input :type => "text", :name => "title", :value => @story.title; br
       textarea :name => "body" do; @story.body; end; br
       input :type => "submit"
-      input :type => "hidden", :name => "id", :value => @story.id
+      # input :type => "hidden", :name => "id", :value => @story.id
     end
   end
   

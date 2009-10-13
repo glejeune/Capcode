@@ -382,47 +382,47 @@ module Capcode
               }
             end
 
-            case @env["REQUEST_METHOD"]
-              when "GET"
-                finalPath = nil
-                finalArgs = nil
-                finalNArgs = nil
-                
-                aPath = @request.path.gsub( /^\//, "" ).split( "/" )
-                self.class.__urls__[0].each do |p, r|
-                  xPath = p.gsub( /^\//, "" ).split( "/" )
-                  if (xPath - aPath).size == 0
-                    diffArgs = aPath - xPath
-                    diffNArgs = diffArgs.size
-                    if finalNArgs.nil? or finalNArgs > diffNArgs
-                      finalPath = p
-                      finalNArgs = diffNArgs
-                      finalArgs = diffArgs
-                    end
-                  end
-                  
-                end
+            finalPath = nil
+            finalArgs = nil
+            finalNArgs = nil
             
-                nargs = self.class.__urls__[1]
-                regexp = Regexp.new( self.class.__urls__[0][finalPath] )
-                args = regexp.match( Rack::Utils.unescape(@request.path).gsub( Regexp.new( "^#{finalPath}" ), "" ).gsub( /^\//, "" ) )
-                if args.nil?
-                  raise Capcode::ParameterError, "Path info `#{@request.path_info}' does not match route regexp `#{regexp.source}'"
-                else
-                  args = args.captures.map { |x| (x.size == 0)?nil:x }
+            aPath = @request.path.gsub( /^\//, "" ).split( "/" )
+            self.class.__urls__[0].each do |p, r|
+              xPath = p.gsub( /^\//, "" ).split( "/" )
+              if (xPath - aPath).size == 0
+                diffArgs = aPath - xPath
+                diffNArgs = diffArgs.size
+                if finalNArgs.nil? or finalNArgs > diffNArgs
+                  finalPath = p
+                  finalNArgs = diffNArgs
+                  finalArgs = diffArgs
                 end
-                
-                while args.size < nargs
-                  args << nil
-                end
-                      
+              end
+              
+            end
+        
+            nargs = self.class.__urls__[1]
+            regexp = Regexp.new( self.class.__urls__[0][finalPath] )
+            args = regexp.match( Rack::Utils.unescape(@request.path).gsub( Regexp.new( "^#{finalPath}" ), "" ).gsub( /^\//, "" ) )
+            if args.nil?
+              raise Capcode::ParameterError, "Path info `#{@request.path_info}' does not match route regexp `#{regexp.source}'"
+            else
+              args = args.captures.map { |x| (x.size == 0)?nil:x }
+            end
+            
+            while args.size < nargs
+              args << nil
+            end
+
+            case @env["REQUEST_METHOD"]
+              when "GET"                      
                 get( *args )
               when "POST"
                 _method = params.delete( "_method" ) { |_| "post" }
-                send( _method.downcase.to_sym )
+                send( _method.downcase.to_sym, *args )
               else
                 _method = @env["REQUEST_METHOD"]
-                send( _method.downcase.to_sym )
+                send( _method.downcase.to_sym, *args )
             end
           }
           if r.respond_to?(:to_ary)
