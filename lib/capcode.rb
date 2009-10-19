@@ -58,6 +58,10 @@ module Capcode
     # If you want to use a specific layout, you can specify it with option 
     #   :layout
     #
+    # If you want to change the Content-Type, you can specify it with option
+    #   :content_type
+    # Note that this will not work with the JSON renderer
+    #
     # If you use the WebDav renderer, you can use the option 
     #   :resource_class (see http://github.com/georgi/rack_dav for more informations)
     def render( hash )
@@ -82,6 +86,10 @@ module Capcode
         end
 
         render_name = hash.delete(render_type)
+        content_type = hash.delete(:content_type)
+        unless content_type.nil?
+          @response['Content-Type'] = content_type
+        end
 
         begin
           self.send( "render_#{render_type.to_s}", render_name, hash )
