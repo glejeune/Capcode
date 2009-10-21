@@ -2,12 +2,16 @@ $:.unshift( "../lib" )
 require 'capcode'
 require 'capcode/render/haml'
 require 'capcode/render/sass'
-Capcode::Helpers.haml_path="haml"
-Capcode::Helpers.sass_path="haml"
+#Capcode::Helpers.haml_path="haml"
+#Capcode::Helpers.sass_path="haml"
 
 module Capcode
+  set :haml, "haml"
+  set :sass, "haml"
+  
   class Index < Route '/'
     def get
+      @time = Time.now
       render :haml => :cf, :layout => :cf_layout
     end
   end

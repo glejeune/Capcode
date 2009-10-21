@@ -1,9 +1,11 @@
+$:.unshift( "../lib" )
+require 'sample.rb'
+
 require 'rubygems'
 require 'test/unit'
 require 'rack/test'
-require 'sample.rb'
 
-@@app = Capcode.application( :verbose => true )
+@@app = Capcode.application( )
 
 class HomepageTest < Test::Unit::TestCase
   include Rack::Test::Methods
@@ -22,9 +24,6 @@ class HomepageTest < Test::Unit::TestCase
   
   def test_redirect
     get '/r'
-    
-    puts last_request
-    puts last_response
     
     assert_equal "http://example.org/r", last_request.url
     follow_redirect!

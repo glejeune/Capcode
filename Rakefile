@@ -32,7 +32,8 @@ Rake::RDocTask.new do |rdoc|
     'AUTHORS', 
     'COPYING',
     'lib/capcode.rb',
-    'lib/capcode/base/db.rb'
+    'lib/capcode/base/db.rb',
+    'lib/capcode/configuration.rb'
   ] + Dir.glob( "lib/capcode/render/*.rb" ) + Dir.glob( "lib/capcode/helpers/*.rb" )
 end
 
@@ -47,7 +48,7 @@ spec =
     s.platform = Gem::Platform::RUBY
     s.has_rdoc = true
     s.extra_rdoc_files = ["README.rdoc", "AUTHORS", "COPYING",
-      'lib/capcode.rb', 'lib/capcode/base/db.rb'] + Dir.glob( "lib/capcode/render/*.rb" )
+      'lib/capcode.rb', 'lib/capcode/configuration.rb', 'lib/capcode/base/db.rb'] + Dir.glob( "lib/capcode/render/*.rb" )
     s.rdoc_options += RDOC_OPTS + ['--exclude', '^(examples|extras|test|lib)\/']
     s.summary = "Capcode is a web microframework"
     s.description = s.summary

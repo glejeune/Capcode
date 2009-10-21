@@ -2,11 +2,11 @@ require 'erb'
 
 module Capcode
   module Helpers
-    @@__ERB_PATH__ = "."
-    
     # Set the path to ERB files. If this path is not set, Capcode will search in the static path.
-    def self.erb_path=( p ) #:nodoc:
-      @@__ERB_PATH__ = p
+    # This method is deprecated and will be removed in version 1.0
+    def self.erb_path=( p )
+      warn "Capcode::Helpers.erb_path is deprecated and will be removed in version 1.0, please use `set :erb'"
+      Capcode.set :erb, p
     end
     
     def get_binding #:nodoc:
@@ -14,8 +14,8 @@ module Capcode
     end
     
     def render_erb( f, opts ) #:nodoc:
-      if @@__ERB_PATH__.nil?
-        @@__ERB_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static():''
+      if @erb_path.nil?
+        @erb_path = Capcode.get( :erb ) || Capcode.static()
       end
       
       f = f.to_s
@@ -24,28 +24,35 @@ module Capcode
       end
       
       if /Windows/.match( ENV['OS'] )
-        unless( /.:\\/.match( @@__ERB_PATH__[0] ) )
-          @@__ERB_PATH__ = File.expand_path( File.join(".", @@__ERB_PATH__) )
+        unless( /.:\\/.match( @erb_path[0] ) )
+          @erb_path = File.expand_path( File.join(".", @erb_path) )
         end
       else
-        unless( @@__ERB_PATH__[0].chr == "/" )
-          @@__ERB_PATH__ = File.expand_path( File.join(".", @@__ERB_PATH__) )
+        unless( @erb_path[0].chr == "/" )
+          @erb_path = File.expand_path( File.join(".", @erb_path) )
         end
       end
 
+      # Get Layout
       layout = opts.delete(:layout)||:layout
-      layout_file = File.join( @@__ERB_PATH__, layout.to_s+".rhtml" )
+      layout_file = File.join( @erb_path, layout.to_s+".rhtml" )
 
+      # Get file
       f = f + ".rhtml" if File.extname( f ) != ".rhtml"
-      file = File.join( @@__ERB_PATH__, f )
+      file = File.join( @erb_path, f )
       
-      if( File.exist?( layout_file ) )
-        ERB.new(open(layout_file).read).result( get_binding { |*args| 
-          @@__ARGS__ = args
-          ERB.new(open(file).read).result(binding) 
-        } )
+      if( File.exist?( file ) )
+        if( File.exist?( layout_file ) )
+          ERB.new(open(layout_file).read).result( get_binding { |*args| 
+            #@@__ARGS__ = args
+            Capcode::Helpers.args = args
+            ERB.new(open(file).read).result(binding) 
+          } )
+        else
+          ERB.new(open(file).read).result(binding)
+        end
       else
-        ERB.new(open(file).read).result(binding)
+        raise Capcode::RenderError, "Error rendering `erb', #{file} does not exist !"
       end
     end
   end

@@ -2,15 +2,16 @@ require "haml"
 
 module Capcode
   module Helpers
-    @@__HAML_PATH__ = nil
     # Set the path to Haml files. If this path is not set, Capcode will search in the static path.
-    def self.haml_path=( p ) #:nodoc:
-      @@__HAML_PATH__ = p
+    # This method is deprecated and will be removed in version 1.0
+    def self.haml_path=( p )
+      warn "Capcode::Helpers.haml_path is deprecated and will be removed in version 1.0, please use `set :haml'"
+      Capcode.set :haml, p
     end
     
     def render_haml( f, opts ) #:nodoc:
-      if @@__HAML_PATH__.nil?
-        @@__HAML_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static():''
+      if @haml_path.nil?
+        @haml_path = Capcode.get( :haml ) || Capcode.static()
       end
       
       f = f.to_s
@@ -19,28 +20,36 @@ module Capcode
       end
       
       if /Windows/.match( ENV['OS'] )
-        unless( /.:\\/.match( @@__HAML_PATH__[0] ) )
-          @@__HAML_PATH__ = File.expand_path( File.join(".", @@__HAML_PATH__) )
+        unless( /.:\\/.match( @haml_path[0] ) )
+          @haml_path = File.expand_path( File.join(".", @haml_path) )
         end
       else
-        unless( @@__HAML_PATH__[0].chr == "/" )
-          @@__HAML_PATH__ = File.expand_path( File.join(".", @@__HAML_PATH__) )
+        unless( @haml_path[0].chr == "/" )
+          @haml_path = File.expand_path( File.join(".", @haml_path) )
         end
       end
-       
-      layout = opts.delete(:layout)||:layout
-      layout_file = File.join( @@__HAML_PATH__, layout.to_s+".haml" )
       
+      # Get Layout file
+      layout = opts.delete(:layout)||:layout
+      layout_file = File.join( @haml_path, layout.to_s+".haml" )
+      
+      # Get HAML File
       f = f + ".haml" if File.extname( f ) != ".haml"
-      file = File.join( @@__HAML_PATH__, f )
-
-      if( File.exist?( layout_file ) )
-        Haml::Engine.new( open( layout_file ).read ).to_html(self) { |*args| 
-          @@__ARGS__ = args
-          Haml::Engine.new( open( file ).read ).render(self) 
-        }
+      file = File.join( @haml_path, f )
+      
+      # Render
+      if( File.exist?( file ) )
+        if( File.exist?( layout_file ) )
+          Haml::Engine.new( open( layout_file ).read ).to_html(self) { |*args| 
+            #@@__ARGS__ = args
+            Capcode::Helpers.args = args
+            Haml::Engine.new( open( file ).read ).render(self) 
+          }
+        else
+          Haml::Engine.new( open( file ).read ).to_html( self )
+        end
       else
-        Haml::Engine.new( open( file ).read ).to_html( self )
+        raise Capcode::RenderError, "Error rendering `haml', #{file} does not exist !"
       end
     end
   end

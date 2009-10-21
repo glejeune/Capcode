@@ -2,6 +2,8 @@ require 'rubygems'
 require 'capcode'
 
 module Capcode
+  set :verbose, true
+  
   class Index < Route '/'
     def get
       render "Hello World"

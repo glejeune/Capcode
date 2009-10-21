@@ -15,7 +15,8 @@ module Capcode
       __mab = Mab.new({}, self) { 
         if self.respond_to?(layout)
           self.send(layout.to_s) { |*args| 
-            @@__ARGS__ = args
+            #@@__ARGS__ = args
+            Capcode::Helpers.args = args
             self.send(f) 
           }
         else

@@ -2,16 +2,16 @@ require "sass"
 
 module Capcode
   module Helpers
-    @@__SASS_PATH__ = "."
-    
     # Set the path to Sass files. If this path is not set, Capcode will search in the static path.
-    def self.sass_path=( p ) #:nodoc:
-      @@__SASS_PATH__ = p
+    # This method is deprecated and will be removed in version 1.0
+    def self.sass_path=( p )
+      warn "Capcode::Helpers.sass_path is deprecated and will be removed in version 1.0, please use `set :sass'"
+      Capcode.set :sass, p
     end
     
     def render_sass( f, _ ) #:nodoc:
-      if @@__SASS_PATH__.nil?
-        @@__SASS_PATH__ = "." + (Capcode.static.nil? == false)?Capcode.static():''
+      if @sass_path.nil?
+        @sass_path = Capcode.get( :sass ) || Capcode.static() 
       end
       
       f = f.to_s
@@ -20,19 +20,25 @@ module Capcode
       end
       
       if /Windows/.match( ENV['OS'] )
-        unless( /.:\\/.match( @@__SASS_PATH__[0] ) )
-          @@__SASS_PATH__ = File.expand_path( File.join(".", @@__SASS_PATH__) )
+        unless( /.:\\/.match( @sass_path[0] ) )
+          @sass_path = File.expand_path( File.join(".", @sass_path) )
         end
       else
-        unless( @@__SASS_PATH__[0].chr == "/" )
-          @@__SASS_PATH__ = File.expand_path( File.join(".", @@__SASS_PATH__) )
+        unless( @sass_path[0].chr == "/" )
+          @sass_path = File.expand_path( File.join(".", @sass_path) )
         end
       end
-       
+      
+      # Get File
       f = f + ".sass" if File.extname( f ) != ".sass"
-      file = File.join( @@__SASS_PATH__, f )
+      file = File.join( @sass_path, f )
 
-      Sass::Engine.new( open( file ).read ).to_css
+      # Render
+      if( File.exist?( file ) )
+        Sass::Engine.new( open( file ).read ).to_css
+      else
+        raise Capcode::RenderError, "Error rendering `sass', #{file} does not exist !"
+      end
     end
   end
 end

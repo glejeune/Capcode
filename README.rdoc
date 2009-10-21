@@ -15,6 +15,8 @@ Capcode is a web microframework
 === 0.8.7
 * Route's captures are now passed to all methods in a coontroller
 * Add :content_type option to renderers (see render-image.rb)
+* Add Capcode.set for configuration. So Capcode::Herpers#erb_path=, Capcode::Herpers#sass_path= and Capcode::Herpers#haml_path= are deprecated, you must now use `set :erb, ...', `set :sass, ...' and `set :haml, ...' (see render-erb.rb and render-haml_sass.rb)
+* Add Capcode.use to allow usage of Rack middlewares (see render-use.rb)
 
 === 0.8.6
 * HUGE bug correction

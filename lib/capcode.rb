@@ -1,3 +1,5 @@
+# Please read the README.rdoc file !
+
 require 'rubygems'
 require 'rack'
 require 'json' ## DELETE THIS IN 1.0.0
@@ -9,11 +11,12 @@ require 'capcode/version'
 require 'capcode/core_ext'
 require 'capcode/helpers/auth'
 require 'capcode/render/text'
+require 'capcode/configuration'
 
 module Capcode
-  @@__ROUTES = {}
-  @@__STATIC_DIR = nil
-  @@__APP = nil
+  #@@__ROUTES = {}
+  #@@__STATIC_DIR = nil
+  #@@__APP = nil
   
   # @@__FILTERS = []
   # def self.before_filter( opts, &b )
@@ -36,7 +39,13 @@ module Capcode
   
   # Helpers contains methods available in your controllers
   module Helpers
-    @@__ARGS__ = nil
+    #@@__ARGS__ = nil
+    def self.args
+      @args ||= nil
+    end
+    def self.args=(x)
+      @args = x
+    end
     
     # Render a view
     # 
@@ -113,7 +122,7 @@ module Capcode
     #
     # <b>DEPRECATED</b>, please use <tt>render( :json => o )</tt>
     def json( d ) ## DELETE THIS IN 1.0.0
-      warn( "json is deprecated, please use `render( :json => ... )'" )
+      warn( "json is deprecated and will be removed in version 1.0, please use `render( :json => ... )'" )
       @response['Content-Type'] = 'application/json'
       d.to_json
     end
@@ -217,7 +226,8 @@ module Capcode
     #     end
     #   end
     def content_for( x )
-      if @@__ARGS__.map{|_| _.to_s }.include?(x.to_s)
+      #if @@__ARGS__.map{|_| _.to_s }.include?(x.to_s)
+      if Capcode::Helpers.args.map{|_| _.to_s }.include?(x.to_s)
         yield
       end
     end
@@ -270,7 +280,7 @@ module Capcode
   end
     
   class << self
-    attr :__auth__, true
+    attr :__auth__, true #:nodoc:
     
     # Add routes to a controller class
     # 
@@ -458,7 +468,25 @@ module Capcode
     #     Rack::File.new( "." )
     #   end
     def map( route, &b )
-      @@__ROUTES[route] = yield
+      #@@__ROUTES[route] = yield
+      Capcode.routes[route] = yield
+    end
+    
+    # This method allow you to use a Rack middleware
+    #
+    # Example :
+    #
+    #   module Capcode
+    #     ...
+    #     use Rack::Codehighlighter, :coderay, :element => "pre", 
+    #       :pattern => /\A:::(\w+)\s*\n/, :logging => false
+    #     ...
+    #   end
+    def use(middleware, *args, &block)
+      middlewares << [middleware, args, block]
+    end
+    def middlewares #:nodoc:
+      @middlewares ||= []
     end
 
     # Allow you to add and HTTP Authentication (Basic or Digest) to controllers for or specific route
@@ -498,25 +526,26 @@ module Capcode
   
     def configuration( args = {} ) #:nodoc:
       {
-        :port => args[:port]||3000, 
-        :host => args[:host]||"0.0.0.0",
-        :server => args[:server]||nil,
-        :log => args[:log]||$stdout,
-        :session => args[:session]||{},
-        :pid => args[:pid]||"#{$0}.pid",
-        :daemonize => args[:daemonize]||false,
-        :db_config => File.expand_path(args[:db_config]||"database.yml"),
-        :static => args[:static]||nil,
-        :root => args[:root]||File.expand_path(File.dirname($0)),
-        :static => args[:static]||args[:root]||File.expand_path(File.dirname($0)),
-        :verbose => args[:verbose]||false,
+        :port => args[:port]||Capcode.get(:port)||3000, 
+        :host => args[:host]||Capcode.get(:host)||"0.0.0.0",
+        :server => args[:server]||Capcode.get(:server)||nil,
+        :log => args[:log]||Capcode.get(:log)||$stdout,
+        :session => args[:session]||Capcode.get(:session)||{},
+        :pid => args[:pid]||Capcode.get(:pid)||"#{$0}.pid",
+        :daemonize => args[:daemonize]||Capcode.get(:daemonize)||false,
+        :db_config => File.expand_path(args[:db_config]||Capcode.get(:db_config)||"database.yml"),
+        :root => args[:root]||Capcode.get(:root)||File.expand_path(File.dirname($0)),
+        :static => args[:static]||Capcode.get(:static)||args[:root]||File.expand_path(File.dirname($0)),
+        :verbose => args[:verbose]||Capcode.get(:verbose)||false,
         :console => false
       }
     end
     
     # Return the Rack App.
     # 
-    # Options : same has Capcode.run
+    # Options : see Capcode.set
+    #
+    # Options set here replace the ones set globally
     def application( args = {} )
       conf = configuration(args)
       
@@ -525,8 +554,10 @@ module Capcode
           if eval "Capcode::#{k}.public_methods(true).include?( '__urls__' )"
             hash_of_routes, max_captures_for_routes, klass = eval "Capcode::#{k}.__urls__"
             hash_of_routes.keys.each do |current_route_path|
-              raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if @@__ROUTES.keys.include?(current_route_path)
-              @@__ROUTES[current_route_path] = klass.new
+              #raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if @@__ROUTES.keys.include?(current_route_path)
+              raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if Capcode.routes.keys.include?(current_route_path)
+              #@@__ROUTES[current_route_path] = klass.new
+              Capcode.routes[current_route_path] = klass.new
             end
           end
         rescue => e
@@ -535,15 +566,18 @@ module Capcode
       end
       
       # Set Static directory
-      @@__STATIC_DIR = (conf[:static][0].chr == "/")?conf[:static]:"/"+conf[:static] unless conf[:static].nil?
+      #@@__STATIC_DIR = (conf[:static][0].chr == "/")?conf[:static]:"/"+conf[:static] unless conf[:static].nil?
+      Capcode.static = (conf[:static][0].chr == "/")?conf[:static]:"/"+conf[:static] unless conf[:static].nil?
       
       # Initialize Rack App
       puts "** Map routes." if conf[:verbose]
-      app = Rack::URLMap.new(@@__ROUTES)
+      #app = Rack::URLMap.new(@@__ROUTES)
+      app = Rack::URLMap.new(Capcode.routes)
       puts "** Initialize static directory (#{conf[:static]})" if conf[:verbose]
       app = Rack::Static.new( 
         app, 
-        :urls => [@@__STATIC_DIR], 
+        #:urls => [@@__STATIC_DIR], 
+        :urls => [Capcode.static], 
         :root => File.expand_path(conf[:root]) 
       ) unless conf[:static].nil?
       puts "** Initialize session" if conf[:verbose]
@@ -554,6 +588,16 @@ module Capcode
       app = Rack::ShowExceptions.new(app)
       #app = Rack::Reloader.new(app) ## -- NE RELOAD QUE capcode.rb -- So !!!
       # app = Rack::CommonLogger.new( app, Logger.new(conf[:log]) )
+      
+      middlewares.each do |mw|
+        middleware, args, block = mw
+        puts "** Load middleware #{middleware}" if conf[:verbose]
+        if block
+          app = middleware.new( app, *args, &block )
+        else
+          app = middleware.new( app, *args )
+        end
+      end
       
       # Start database
       if self.methods.include? "db_connect"
@@ -569,19 +613,9 @@ module Capcode
     
     # Start your application.
     # 
-    # Options :
-    # * <tt>:port</tt> = Listen port (default: 3000)
-    # * <tt>:host</tt> = Listen host (default: 0.0.0.0)
-    # * <tt>:server</tt> = Server type (webrick or mongrel)
-    # * <tt>:log</tt> = Output logfile (default: STDOUT)
-    # * <tt>:session</tt> = Session parameters. See Rack::Session for more informations
-    # * <tt>:pid</tt> = PID file (default: $0.pid)
-    # * <tt>:daemonize</tt> = Daemonize application (default: false)
-    # * <tt>:db_config</tt> = database configuration file (default: database.yml)
-    # * <tt>:static</tt> = Static directory (default: none -- relative to the working directory)
-    # * <tt>:root</tt> = Root directory (default: directory of the main.rb) -- This is also the working directory !
-    # * <tt>:verbose</tt> = run in verbose mode
-    # * <tt>:auth</tt> = HTTP Basic Authentication options
+    # Options : see Capcode.set
+    #
+    # Options set here replace the ones set globally
     def run( args = {} )
       conf = configuration(args)
       
@@ -703,11 +737,18 @@ module Capcode
     end
 
     def routes #:nodoc:
-      @@__ROUTES
+      #@@__ROUTES
+      @routes ||= {}
     end
     
     def static #:nodoc:
-      @@__STATIC_DIR
-    end    
+      #@@__STATIC_DIR
+      @static_dir ||= nil
+    end
+    def static=(x) #:nodoc:
+      #@@__STATIC_DIR
+      @static_dir = x
+    end
+    
   end
 end
