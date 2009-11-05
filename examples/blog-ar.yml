@@ -1,0 +1,3 @@
+adapter: sqlite3
+database: ar_blog.db
+schema_version: 1.0

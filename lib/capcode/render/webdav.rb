@@ -4,13 +4,17 @@ require 'time'
 require 'uri'
 require 'rexml/document'
 require 'webrick/httputils'
- 
-require 'rack_dav/builder_namespace'
-require 'rack_dav/http_status'
-require 'rack_dav/resource'
-require 'rack_dav/file_resource'
-require 'rack_dav/handler'
-require 'rack_dav/controller'
+
+begin
+  require 'rack_dav/builder_namespace'
+  require 'rack_dav/http_status'
+  require 'rack_dav/resource'
+  require 'rack_dav/file_resource'
+  require 'rack_dav/handler'
+  require 'rack_dav/controller'
+rescue LoadError => e
+  raise MissingLibrary, "Rack_Dav could not be loaded (is it installed?): #{e.message}"
+end 
 
 
 module Capcode

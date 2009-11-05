@@ -1,4 +1,8 @@
-require "sass"
+begin
+  require 'sass'
+rescue LoadError => e
+  raise MissingLibrary, "Sass could not be loaded (is it installed?): #{e.message}"
+end
 
 module Capcode
   module Helpers

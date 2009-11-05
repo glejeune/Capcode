@@ -15,7 +15,7 @@ class Regexp
 end
 
 class Hash
-  def keys_to_sym
+  def keys_to_sym #:nodoc:
     self.each do |k, v|
       self.delete(k)
       self[k.to_s.to_sym] = v

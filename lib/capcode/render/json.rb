@@ -1,4 +1,8 @@
-require 'json'
+begin
+  require 'json'
+rescue LoadError => e
+  raise MissingLibrary, "Json could not be loaded (is it installed?): #{e.message}"
+end
 
 module Capcode
   module Helpers

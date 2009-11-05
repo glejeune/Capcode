@@ -34,6 +34,9 @@ module Capcode
   class RenderError < ArgumentError #:nodoc: all
   end
   
+  class MissingLibrary < Exception #:nodoc: all
+  end
+  
   # Views is an empty module in which you can store your markaby or xml views.
   module Views; end
   

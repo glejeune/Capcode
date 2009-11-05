@@ -1,4 +1,8 @@
-require "markaby"
+begin
+  require 'markaby'
+rescue LoadError => e
+  raise MissingLibrary, "Markaby could not be loaded (is it installed?): #{e.message}"
+end
 
 Markaby::Builder.set(:indent, 2)
 

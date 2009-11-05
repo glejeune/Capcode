@@ -1,7 +1,6 @@
 $:.unshift( "../lib" )
 require 'capcode'
 require 'capcode/render/mustache'
-require 'capcode/render/sass'
 
 module Capcode
   set :mustache, "mustache"

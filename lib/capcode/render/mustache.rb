@@ -1,4 +1,8 @@
-require "mustache"
+begin
+  require 'mustache'
+rescue LoadError => e
+  raise MissingLibrary, "Mustache could not be loaded (is it installed?): #{e.message}"
+end
 
 module Capcode
   module Helpers

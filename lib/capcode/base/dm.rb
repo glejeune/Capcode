@@ -1,5 +1,9 @@
 require 'rubygems'
-require 'dm-core'
+begin
+  require 'dm-core'
+rescue LoadError => e
+  raise MissingLibrary, "DataMapper could not be loaded (is it installed?): #{e.message}"
+end
 require 'yaml'
 require 'logger'
 

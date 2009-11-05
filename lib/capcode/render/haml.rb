@@ -1,4 +1,8 @@
-require "haml"
+begin
+  require 'haml'
+rescue LoadError => e
+  raise MissingLibrary, "Haml could not be loaded (is it installed?): #{e.message}"
+end
 
 module Capcode
   module Helpers
