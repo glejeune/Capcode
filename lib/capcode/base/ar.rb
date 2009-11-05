@@ -1,7 +1,7 @@
 begin
-    require 'active_record'
+  require 'active_record'
 rescue LoadError => e
-    raise MissingLibrary, "ActiveRecord could not be loaded (is it installed?): #{e.message}"
+  raise MissingLibrary, "ActiveRecord could not be loaded (is it installed?): #{e.message}"
 end
 
 module Capcode
