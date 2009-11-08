@@ -74,6 +74,7 @@ If you want to use SASS renderer, you must install sass.
 If you want to use Mustache renderer, you must install mustache.
 If you want to use JSON renderer, you must install json.
 If you want to use WebDAV renderer, you must install rack_dav.
+If you want to use Mail renderer, you must install mail.
 
 If For more information about Capcode, see 
   http://capcode.rubyforge.org

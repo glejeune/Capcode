@@ -14,7 +14,10 @@ Capcode is a web microframework
 
 === 0.8.8
 * Add mustache renderer
-* Add AcriveRecord support (see blog-ar.rb)
+* Add AcriveRecord support (see example blog-ar.rb)
+* Add Binary renderer (see example render-binary.rb)
+* Add Mail renderer (see example render-mail.rb)
+* Add Redirect renderer (see examples render-redirect.rb and render-mail.rb)
 
 === 0.8.7
 * Route's captures are now passed to all methods in a controller
