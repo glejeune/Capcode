@@ -34,15 +34,13 @@ module Capcode
     end
     
     def db
-      @db ||= Sequel.connect(@cnx)
+      @db ||= Sequel.connect(@dbconfig)
     end
     
     def db_connect( dbfile, logfile )
-      dbconfig = YAML::load(File.open(dbfile)).keys_to_sym
-      dbconfig[:adapter] = "sqlite" if dbconfig[:adapter] == "sqlite3"
+      @dbconfig = YAML::load(File.open(dbfile)).keys_to_sym
+      @dbconfig[:adapter] = "sqlite" if @dbconfig[:adapter] == "sqlite3"
       version = dbconfig.delete(:schema_version) { |_| @final }
-      
-      @cnx = dbconfig
       
       if @migrations
         Capcode::db.create_table? :schema_table do
