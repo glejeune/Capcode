@@ -19,6 +19,7 @@ Capcode is a web microframework
 * Add Binary renderer (see example render-binary.rb)
 * Add Mail renderer (see example render-mail.rb)
 * Add Redirect renderer (see examples render-redirect.rb and render-mail.rb)
+* Add "none" renderer (return a 204 status code)
 
 === 0.8.7
 * Route's captures are now passed to all methods in a controller
