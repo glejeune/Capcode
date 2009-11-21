@@ -1,16 +1,16 @@
 == Usage
 
 1. Install faye
-	sudo gem install faye
+  sudo gem install faye
 	
 2. Run the server
-	ruby soapbox.rb
+  ruby soapbox.rb
 
 3. Connect to http://localhost:3000
 
 == Licence
 
-Because this example is freely adapted from the soapbox exemple from faye (http://github.com/jcoglan/faye), all files follow the faye license :
+Because this example is freely adapted from the soapbox exemple from faye (http://github.com/jcoglan/faye), all files in this example follow the faye license :
 
 (The MIT License)
 
