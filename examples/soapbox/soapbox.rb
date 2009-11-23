@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'capcode'
 require 'capcode/render/erb'
-require 'capcode/render/static'
 require 'faye'
 
 module Capcode
@@ -14,13 +13,7 @@ module Capcode
       @server = env['faye.server']
       render :erb => :index
     end
-  end
-  
-  class Static < Route '/public/(.*)'
-    def get( f )
-      render :static => f
-    end
-  end
+  end  
 end
 
-Capcode.run()
+Capcode.run( )
