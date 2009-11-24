@@ -34,8 +34,8 @@ module Faye
       @uri = URI.parse(@uri) if @uri.class == String
       @clientId = nil
       @interval = nil
-      @subscriptions = {}
       @connection = nil
+      @subscriptions = {}
     end
     
     # Request                              Response
@@ -48,7 +48,9 @@ module Faye
     #                                                     * id
     #                                                     * timestamp
     def connect
+      @connection.kill unless @connection.nil?
       @connection = Thread.new {
+        faild = false
         while true
           id = Faye.random(32)
           message = {
@@ -61,7 +63,15 @@ module Faye
             
           if r[0]["id"] == id and r[0]["successful"] == true
             @subscriptions[r[1]["channel"]].call( r[1]["data"])
+          elsif r[0]["successful"] == false
+            faild = true
+            break
           end
+        end
+        
+        if faild
+          handshake()
+          connect()
         end
       }
     end
@@ -106,15 +116,16 @@ module Faye
     #                * id                                         * id
     #                * authSuccessful
     def handshake
+      id = Faye.random(32)
       message = {
         "channel" => Faye::Channel::HANDSHAKE,
         "version" => Faye::BAYEUX_VERSION,
         "supportedConnectionTypes" => [ "long-polling", "callback-polling" ],
-        "id" => Faye.random(32)
+        "id" => id
       }
       
       response = send( message )[0]
-      if response["successful"]
+      if response["successful"] and response["id"] == id
         @clientId = response["clientId"]
         @interval = response["advice"]["interval"]
       else
@@ -133,7 +144,8 @@ module Faye
         {
           "channel" => channel,
           "data" => data, 
-          "clientId" => @clientId
+          "clientId" => @clientId,
+          "id" => Faye.random(32)
         }
       ]
       r = send(message)[0]
@@ -204,33 +216,33 @@ module Faye
 end
 
 if $0 == __FILE__
-  x = Faye::Client.new( 'http://localhost:9292/comet' )
-  
-  puts "-- handshake"
-  x.handshake
-  
-  puts "-- subscriptions"
-  x.subscribe( "/mentioning/daemon" )
+x = Faye::Client.new( 'http://localhost:3000/comet' )
 
-  x.subscribe( "/from/greg" ) { |r|
-    puts "#{r["user"]} : #{r["message"]}"
-  }
-  
-  puts "-- connect"
-  x.connect
-  
-  msg = ""  
-  while msg != "quit"
-    msg = $stdin.readline.chomp
-    unless msg == "quit"
-      channel = "/from/daemon"
-      data = { "user" => "daemon", "message" => msg }
-      r = x.publish( channel, data )
-      unless r["successful"]
-        puts "=> Message not send !"
-      end
+puts "-- handshake"
+x.handshake
+
+puts "-- subscriptions"
+x.subscribe( "/mentioning/daemon" )
+
+x.subscribe( "/from/greg" ) { |r|
+  puts "#{r["user"]} : #{r["message"]}"
+}
+
+puts "-- connect"
+x.connect
+
+msg = ""  
+while msg != "quit"
+  msg = $stdin.readline.chomp
+  unless msg == "quit"
+    channel = "/from/daemon"
+    data = { "user" => "daemon", "message" => msg }
+    r = x.publish( channel, data )
+    unless r["successful"]
+      puts "=> Message not send !"
     end
   end
-  
-  x.disconnect
+end
+
+x.disconnect
 end
