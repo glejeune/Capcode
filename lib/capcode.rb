@@ -735,6 +735,11 @@ module Capcode
           Rack::Handler::WEBrick.run( app, {:Port => conf[:port], :BindAddress => conf[:host]} ) { |server|
             trap "SIGINT", proc { server.shutdown }
           }
+        when "thin"
+          puts "** Starting Thin on #{conf[:host]}:#{conf[:port]}"
+          Rack::Handler::Thin.run( app, {:Port => conf[:port], :Host => conf[:host]} ) { |server|
+            trap "SIGINT", proc { server.stop }
+          }
         end
       end
     end

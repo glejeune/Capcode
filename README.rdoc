@@ -12,6 +12,9 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.8.9
+* Add Thin support
+
 === 0.8.8
 * Add mustache renderer
 * Add AcriveRecord support (see example blog-ar.rb)

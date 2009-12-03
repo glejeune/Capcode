@@ -5,7 +5,7 @@ module Capcode
     # Options :
     # * <tt>:port</tt> = Listen port (default: 3000)
     # * <tt>:host</tt> = Listen host (default: 0.0.0.0)
-    # * <tt>:server</tt> = Server type (webrick or mongrel)
+    # * <tt>:server</tt> = Server type (webrick, mongrel or thin)
     # * <tt>:log</tt> = Output logfile (default: STDOUT)
     # * <tt>:session</tt> = Session parameters. See Rack::Session for more informations
     # * <tt>:pid</tt> = PID file (default: $0.pid)
