@@ -724,7 +724,7 @@ module Capcode
         end
         
         # Start server
-        case conf[:server]
+        case conf[:server].to_s
         when "mongrel"
           puts "** Starting Mongrel on #{conf[:host]}:#{conf[:port]}"
           Rack::Handler::Mongrel.run( app, {:Port => conf[:port], :Host => conf[:host]} ) { |server|

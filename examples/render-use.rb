@@ -8,6 +8,7 @@ require 'rack/codehighlighter'
 module Capcode
   set :static, "static"
   set :verbose, true
+  set :server, :thin
 
   use Rack::Codehighlighter, :coderay, :element => "pre", :pattern => /\A:::(\w+)\s*\n/, :logging => false
   

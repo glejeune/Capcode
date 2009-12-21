@@ -16,10 +16,15 @@ module Capcode
       f = f.to_s
       layout = opts.delete(:layout)||:layout
 
-      __mab = Mab.new({}, self) { 
+      assigns = {}
+      self.instance_variables.delete_if {|x| ["@response", "@env", "@request"].include?(x) }.each do |ivar|
+        assigns[ivar.gsub( /^@/, "" )] = self.instance_variable_get(ivar)
+      end
+
+      __mab = Mab.new(assigns.merge( opts ), self) { 
         if self.respond_to?(layout)
           self.send(layout.to_s) { |*args| 
-            #@@__ARGS__ = args
+            # @@__ARGS__ = args
             Capcode::Helpers.args = args
             self.send(f) 
           }

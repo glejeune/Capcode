@@ -5,7 +5,8 @@ require 'capcode/render/markaby'
 module Capcode
   class Index < Route '/'
     def get
-      render :markaby => :index
+      @time = Time.now()
+      render :markaby => :index, :layout => :glop
     end
   end  
 end
@@ -21,6 +22,7 @@ module Capcode::Views
   
   def index
     h1 "Hello !"
+    p "il est #{@time}"
   end
 end
 
