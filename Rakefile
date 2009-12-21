@@ -76,11 +76,17 @@ If you want to use JSON renderer, you must install json.
 If you want to use WebDAV renderer, you must install rack_dav.
 If you want to use Mail renderer, you must install mail.
 
-If For more information about Capcode, see 
+If you want to use ActiveRecord, you must install active_record.
+If you want to use DataMapper, you must install dm-core.
+If you want to use Sequel, you must install sequel.
+If you want to use CouchDB, you must install couch_foo.
+If you want to use MongoDB, you must install mongoid.
+
+For more information about Capcode, see 
   http://capcode.rubyforge.org
 
 You can also read the Capcode book (fr) at
-  http://algorithmique.net/capcode
+  http://algorithmique.net/capcode.html
 
 EOM
   end
