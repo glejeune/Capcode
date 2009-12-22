@@ -14,7 +14,7 @@ module Capcode
   
   class Index < Route '/'
     def get
-      render :markaby => :index
+      render :markaby => :index, :layout => :glop
     end
   end
   
