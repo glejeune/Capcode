@@ -5,7 +5,7 @@ require 'capcode/render/markaby'
 
 
 module Capcode
-  set :coffee, "coffee"
+  set :coffee, "coffee", {:no_wrap => true}
   
   class Index < Route '/'
     def get

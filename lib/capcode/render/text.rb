@@ -1,6 +1,6 @@
 module Capcode
   module Helpers
-    def render_text( f, opts ) #:nodoc:
+    def render_text( f, _ ) #:nodoc:
       f
     end
   end

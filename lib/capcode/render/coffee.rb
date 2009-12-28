@@ -33,6 +33,9 @@ module Capcode
         end
       end
       
+      # Update options
+      opts = (Capcode.options[:coffee] || {}).merge(opts)
+
       # Get coffee File
       f = f + ".coffee" if File.extname( f ) != ".coffee"
       file = File.join( @coffee_path, f )
@@ -42,7 +45,7 @@ module Capcode
       
       # Render
       if( File.exist?( file ) )
-        CoffeeScript.compile(open(file), :no_wrap => true)
+        CoffeeScript.compile(open(file), opts)
       else
         raise Capcode::RenderError, "Error rendering `coffee', #{file} does not exist !"
       end

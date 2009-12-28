@@ -8,7 +8,7 @@ require 'capcode/render/static'
 require 'graphviz'
 
 module Capcode
-  set :smtp, { :server => '127.0.0.1', :port => 25 }
+  set :email, { :server => '127.0.0.1', :port => 25 }
   set :erb, "mail"
   set :static, "mail"
   

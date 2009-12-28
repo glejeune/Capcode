@@ -14,6 +14,7 @@ Capcode is a web microframework
 
 === 0.9.0
 * Add {Coffee-Script}[http://jashkenas.github.com/coffee-script/] renderer 
+* Update renderers options
 
 === 0.8.9
 * Add Thin support

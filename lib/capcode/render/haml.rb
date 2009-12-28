@@ -13,7 +13,7 @@ module Capcode
       Capcode.set :haml, p
     end
     
-    def render_haml( f, opts ) #:nodoc:
+    def render_haml( f, opts = {} ) #:nodoc:
       if @haml_path.nil?
         @haml_path = Capcode.get( :haml ) || Capcode.static()
       end
@@ -33,6 +33,9 @@ module Capcode
         end
       end
       
+      # Update options
+      opts = (Capcode.options[:haml] || {}).merge(opts)
+      
       # Get Layout file
       layout = opts.delete(:layout)||:layout
       layout_file = File.join( @haml_path, layout.to_s+".haml" )
@@ -40,17 +43,17 @@ module Capcode
       # Get HAML File
       f = f + ".haml" if File.extname( f ) != ".haml"
       file = File.join( @haml_path, f )
-      
+
       # Render
       if( File.exist?( file ) )
         if( File.exist?( layout_file ) )
-          Haml::Engine.new( open( layout_file ).read ).to_html(self) { |*args| 
+          Haml::Engine.new( open( layout_file ).read, opts ).to_html(self) { |*args| 
             #@@__ARGS__ = args
             Capcode::Helpers.args = args
             Haml::Engine.new( open( file ).read ).render(self) 
           }
         else
-          Haml::Engine.new( open( file ).read ).to_html( self )
+          Haml::Engine.new( open( file ).read, opts ).to_html( self )
         end
       else
         raise Capcode::RenderError, "Error rendering `haml', #{file} does not exist !"

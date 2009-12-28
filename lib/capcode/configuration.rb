@@ -24,8 +24,13 @@ module Capcode
     #     set :erb, "/path/to/erb/files"
     #     ...
     #   end
-    def set( key, value )
+    def set( key, value, opts = {} )
+      if Hash === value
+        opts = value
+        value = nil
+      end
       config[key] = value
+      options[key] = opts
     end
     
     def get( key ) #:nodoc:
@@ -34,6 +39,10 @@ module Capcode
     
     def config
       @configuration ||= {}
+    end
+    
+    def options
+      @options ||= {}
     end
   end
 end

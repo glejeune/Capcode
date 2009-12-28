@@ -3,6 +3,8 @@ require 'capcode'
 require 'capcode/render/markaby'
 
 module Capcode
+  set :markaby, { :indent => 2 }
+  
   class Index < Route '/'
     def get
       @time = Time.now()

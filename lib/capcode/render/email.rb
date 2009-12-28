@@ -8,7 +8,7 @@ module Capcode
   module Helpers
     def render_email( f, _ ) #:nodoc:
       if @smtp.nil?
-        @smtp = { :server => "127.0.0.1", :port => 25 }.merge(Capcode.get( :smtp ) || {})
+        @smtp = { :server => "127.0.0.1", :port => 25 }.merge(Capcode.options[:email] || {})
       end
 
       # Set SMTP info

@@ -6,7 +6,7 @@ require 'capcode/render/sass'
 #Capcode::Helpers.sass_path="haml"
 
 module Capcode
-  set :haml, "haml"
+  set :haml, "haml" #, { :format => :html4 }
   set :sass, "haml"
   
   class Index < Route '/'
