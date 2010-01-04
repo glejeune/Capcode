@@ -44,7 +44,7 @@ module Capcode
       
   class Index < Route '/'
     def get
-      @story = Story.all( )      
+      @story = Story.all( )
       render( :markaby => :home, :layout => :my_layout )
     end
   end

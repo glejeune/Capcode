@@ -7,7 +7,7 @@ module Capcode
   # Render file from /Users/greg/temp !!!
   class WebDav < Route '/temp'
     def get
-      render :webdav => "/Users/greg"
+      render :webdav => "/Users/greg/temp"
     end
     
     def method_missing(id, *a, &b)

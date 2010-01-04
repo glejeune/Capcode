@@ -2,16 +2,16 @@ require 'rubygems'
 begin
   require 'mongoid'
 rescue LoadError => e
-  raise MissingLibrary, "Mongoid could not be loaded (is it installed?): #{e.message}"
+  raise Capcode::MissingLibrary, "Mongoid could not be loaded (is it installed?): #{e.message}"
 end
 require 'yaml'
 require 'logger'
 
 module Capcode
-  module Resource
-  end
+  Resource = Mongoid::Document
   
-  Base = Mongoid::Document
+  class Base
+  end
   
   class << self
     def db_connect( dbfile, logfile )

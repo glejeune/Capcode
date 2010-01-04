@@ -3,7 +3,7 @@ begin
   Sequel.extension :migration
   Sequel.extension :inflector
 rescue LoadError => e
-  raise LoadError, "Sequel could not be loaded (is it installed?): #{e.message}"
+  raise Capcode::MissingLibrary, "Sequel could not be loaded (is it installed?): #{e.message}"
 end
 
 module Capcode
@@ -40,7 +40,7 @@ module Capcode
     def db_connect( dbfile, logfile )
       @dbconfig = YAML::load(File.open(dbfile)).keys_to_sym
       @dbconfig[:adapter] = "sqlite" if @dbconfig[:adapter] == "sqlite3"
-      version = dbconfig.delete(:schema_version) { |_| @final }
+      version = @dbconfig.delete(:schema_version) { |_| @final }
       
       if @migrations
         Capcode::db.create_table? :schema_table do

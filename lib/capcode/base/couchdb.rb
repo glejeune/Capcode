@@ -2,7 +2,7 @@ require 'rubygems'
 begin
   require 'couch_foo'
 rescue LoadError => e
-  raise MissingLibrary, "CouchFoo could not be loaded (is it installed?): #{e.message}"
+  raise Capcode::MissingLibrary, "CouchFoo could not be loaded (is it installed?): #{e.message}"
 end
 require 'yaml'
 require 'logger'

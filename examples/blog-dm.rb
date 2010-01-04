@@ -6,7 +6,7 @@ require 'capcode/base/dm'
 class Story < Capcode::Base
   include Capcode::Resource
   
-  property :id, Integer, :serial => true
+  property :id, Serial
   property :title, String
   property :body, String
   property :date, String

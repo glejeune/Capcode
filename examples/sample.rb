@@ -63,6 +63,7 @@ module Capcode
   
   class ContentFor < Route '/cf'
     def get
+      @time = Time.now
       render( :erb => :cf, :layout => :cf_layout )
     end
   end

@@ -1,5 +1,25 @@
 module Capcode
   class << self
+    def configuration( args = {} ) #:nodoc:
+      @configuration = config.merge({
+        :port => args[:port]||Capcode.get(:port)||3000, 
+        :host => args[:host]||Capcode.get(:host)||"0.0.0.0",
+        :server => args[:server]||Capcode.get(:server)||nil,
+        :log => args[:log]||Capcode.get(:log)||$stdout,
+        :session => args[:session]||Capcode.get(:session)||{},
+        :pid => args[:pid]||Capcode.get(:pid)||"#{$0}.pid",
+        :daemonize => args[:daemonize]||Capcode.get(:daemonize)||false,
+        :db_config => File.expand_path(args[:db_config]||Capcode.get(:db_config)||"database.yml"),
+        :root => args[:root]||Capcode.get(:root)||File.expand_path(File.dirname($0)),
+        :static => args[:static]||Capcode.get(:static)||args[:root]||File.expand_path(File.dirname($0)),
+        :verbose => args[:verbose]||Capcode.get(:verbose)||false,
+        :console => false
+      })
+    end
+    def config
+      @configuration ||= {}
+    end
+    
     # Set global configuration options
     #
     # Options :
@@ -35,10 +55,6 @@ module Capcode
     
     def get( key ) #:nodoc:
       config[key] || nil
-    end
-    
-    def config
-      @configuration ||= {}
     end
     
     def options

@@ -10,7 +10,7 @@ module Capcode
       http_authentication( :type => :digest, :realm => "My WebDAV Directory !!!" ) { 
         {"greg" => "toto"}
       }
-      render :webdav => "/Users/greg"
+      render :webdav => "/Users/greg/temp"
     end
     
     def method_missing(id, *a, &b)

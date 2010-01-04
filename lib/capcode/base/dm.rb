@@ -2,7 +2,7 @@ require 'rubygems'
 begin
   require 'dm-core'
 rescue LoadError => e
-  raise MissingLibrary, "DataMapper could not be loaded (is it installed?): #{e.message}"
+  raise Capcode::MissingLibrary, "DataMapper could not be loaded (is it installed?): #{e.message}"
 end
 require 'yaml'
 require 'logger'

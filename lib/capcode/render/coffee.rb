@@ -17,7 +17,7 @@ module Capcode
       if @coffee_path.nil?
         @coffee_path = Capcode.get( :coffee ) || Capcode.static()
       end
-      
+
       f = f.to_s
       if f.include? '..'
         return [403, {}, '403 - Invalid path']
