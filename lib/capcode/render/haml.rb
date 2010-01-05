@@ -10,12 +10,12 @@ module Capcode
     # This method is deprecated and will be removed in version 1.0
     def self.haml_path=( p )
       warn "Capcode::Helpers.haml_path is deprecated and will be removed in version 1.0, please use `set :haml'"
-      Capcode.set :haml, p
+      Capcode::Configuration.set :haml, p
     end
     
     def render_haml( f, opts = {} ) #:nodoc:
       if @haml_path.nil?
-        @haml_path = Capcode.get( :haml ) || Capcode.static()
+        @haml_path = Capcode::Configuration.get( :haml ) || Capcode.static()
       end
       
       f = f.to_s

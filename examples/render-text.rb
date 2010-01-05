@@ -3,7 +3,7 @@ require 'capcode'
 
 module Capcode
   set :server, :webrick
-  set :port, 3210
+  set :port, 1111
 
   class Index < Route '/'
     def get
@@ -12,4 +12,4 @@ module Capcode
   end  
 end
 
-Capcode.run( )
+Capcode.run( :port => 2222 )

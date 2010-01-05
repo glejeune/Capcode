@@ -4,6 +4,7 @@ require 'rubygems'
 require 'rack'
 require 'json' ## DELETE THIS IN 1.0.0
 require 'logger'
+Logger.class_eval { alias :write :"<<" } unless Logger.instance_methods.include? "write"
 require 'optparse'
 require 'irb'
 require 'mime/types'
@@ -529,11 +530,11 @@ module Capcode
   
     # Return the Rack App.
     # 
-    # Options : see Capcode.set
+    # Options : see Capcode::Configuration.set
     #
     # Options set here replace the ones set globally
     def application( args = {} )
-      configuration(args)
+      Capcode::Configuration.configuration(args)
       
       Capcode.constants.each do |k|
         begin
@@ -553,21 +554,21 @@ module Capcode
       
       # Set Static directory
       #@@__STATIC_DIR = (conf[:static][0].chr == "/")?conf[:static]:"/"+conf[:static] unless conf[:static].nil?
-      Capcode.static = (Capcode.get(:static)[0].chr == "/")?Capcode.get(:static):"/"+Capcode.get(:static) unless Capcode.get(:static).nil?
+      Capcode.static = (Capcode::Configuration.get(:static)[0].chr == "/")?Capcode::Configuration.get(:static):"/"+Capcode::Configuration.get(:static) unless Capcode::Configuration.get(:static).nil?
       
       # Initialize Rack App
-      puts "** Map routes." if Capcode.get(:verbose)
+      puts "** Map routes." if Capcode::Configuration.get(:verbose)
       #app = Rack::URLMap.new(@@__ROUTES)
       app = Rack::URLMap.new(Capcode.routes)
-      puts "** Initialize static directory (#{Capcode.get(:static)})" if Capcode.get(:verbose)
+      puts "** Initialize static directory (#{Capcode::Configuration.get(:static)})" if Capcode::Configuration.get(:verbose)
       app = Rack::Static.new( 
         app, 
         #:urls => [@@__STATIC_DIR], 
         :urls => [Capcode.static], 
-        :root => File.expand_path(Capcode.get(:root)) 
-      ) unless Capcode.get(:static).nil?
-      puts "** Initialize session" if Capcode.get(:verbose)
-      app = Rack::Session::Cookie.new( app, Capcode.get(:session) )
+        :root => File.expand_path(Capcode::Configuration.get(:root)) 
+      ) unless Capcode::Configuration.get(:static).nil?
+      puts "** Initialize session" if Capcode::Configuration.get(:verbose)
+      app = Rack::Session::Cookie.new( app, Capcode::Configuration.get(:session) )
       app = Capcode::HTTPError.new(app)
       app = Rack::ContentLength.new(app)
       app = Rack::Lint.new(app)
@@ -577,7 +578,7 @@ module Capcode
       
       middlewares.each do |mw|
         middleware, args, block = mw
-        puts "** Load middleware #{middleware}" if Capcode.get(:verbose)
+        puts "** Load middleware #{middleware}" if Capcode::Configuration.get(:verbose)
         if block
           app = middleware.new( app, *args, &block )
         else
@@ -587,7 +588,7 @@ module Capcode
       
       # Start database
       if self.methods.include? "db_connect"
-        db_connect( Capcode.get(:db_config), Capcode.get(:log) )
+        db_connect( Capcode::Configuration.get(:db_config), Capcode::Configuration.get(:log) )
       end
       
       if block_given?
@@ -599,11 +600,11 @@ module Capcode
     
     # Start your application.
     # 
-    # Options : see Capcode.set
+    # Options : see Capcode::Configuration.set
     #
     # Options set here replace the ones set globally
     def run( args = {} )
-      Capcode.configuration(args)
+      Capcode::Configuration.configuration(args)
       
       # Parse options
       opts = OptionParser.new do |opts|
@@ -612,22 +613,22 @@ module Capcode
         opts.separator "Specific options:"
 
         opts.on( "-C", "--console", "Run in console mode with IRB (default: false)" ) { 
-          Capcode.set :console, true
+          Capcode::Configuration.set :console, true
         }
-        opts.on( "-h", "--host HOSTNAME", "Host for web server to bind to (default: #{Capcode.get(:host)})" ) { |h|
-          Capcode.set :host, h
+        opts.on( "-h", "--host HOSTNAME", "Host for web server to bind to (default: #{Capcode::Configuration.get(:host)})" ) { |h|
+          Capcode::Configuration.set :host, h
         }
-        opts.on( "-p", "--port NUM", "Port for web server (default: #{Capcode.get(:port)})" ) { |p|
-          Capcode.set :port, p
+        opts.on( "-p", "--port NUM", "Port for web server (default: #{Capcode::Configuration.get(:port)})" ) { |p|
+          Capcode::Configuration.set :port, p
         }
-        opts.on( "-d", "--daemonize [true|false]", "Daemonize (default: #{Capcode.get(:daemonize)})" ) { |d|
-          Capcode.set :daemonize, d
+        opts.on( "-d", "--daemonize [true|false]", "Daemonize (default: #{Capcode::Configuration.get(:daemonize)})" ) { |d|
+          Capcode::Configuration.set :daemonize, d
         }
-        opts.on( "-r", "--root PATH", "Working directory (default: #{Capcode.get(:root)})" ) { |w|
-          Capcode.set :root, w
+        opts.on( "-r", "--root PATH", "Working directory (default: #{Capcode::Configuration.get(:root)})" ) { |w|
+          Capcode::Configuration.set :root, w
         }
-        opts.on( "-s", "--static PATH", "Static directory -- relative to the root directory (default: #{Capcode.get(:static)})" ) { |r|
-          Capcode.set :static, r
+        opts.on( "-s", "--static PATH", "Static directory -- relative to the root directory (default: #{Capcode::Configuration.get(:static)})" ) { |r|
+          Capcode::Configuration.set :static, r
         }
 
         opts.separator ""
@@ -642,7 +643,7 @@ module Capcode
           exit
         end  
         opts.on_tail( "-V", "--verbose", "Run in verbose mode" ) do
-          Capcode.set :verbose, true
+          Capcode::Configuration.set :verbose, true
         end
       end
       
@@ -655,22 +656,22 @@ module Capcode
       end
       
       # Run in the Working directory
-      puts "** Go on root directory (#{File.expand_path(Capcode.get(:root))})" if Capcode.get(:verbose)
-      Dir.chdir( Capcode.get(:root) ) do
+      puts "** Go on root directory (#{File.expand_path(Capcode::Configuration.get(:root))})" if Capcode::Configuration.get(:verbose)
+      Dir.chdir( Capcode::Configuration.get(:root) ) do
         
         # Check that mongrel exists 
-        if Capcode.get(:server).nil? || Capcode.get(:server) == "mongrel"
+        if Capcode::Configuration.get(:server).nil? || Capcode::Configuration.get(:server) == "mongrel"
           begin
             require 'mongrel'
-            Capcode.set :server, :mongrel
+            Capcode::Configuration.set :server, :mongrel
           rescue LoadError 
             puts "!! could not load mongrel. Falling back to webrick."
-            Capcode.set :server, :webrick
+            Capcode::Configuration.set :server, :webrick
           end
         end
         
         # From rackup !!!
-        if Capcode.get(:daemonize)
+        if Capcode::Configuration.get(:daemonize)
           if /java/.match(RUBY_PLATFORM).nil?
             if RUBY_VERSION < "1.9"
               exit if fork
@@ -688,39 +689,39 @@ module Capcode
             puts "!! daemonize option unavailable on #{RUBY_PLATFORM} platform."
           end
         
-          File.open(Capcode.get(:pid), 'w'){ |f| f.write("#{Process.pid}") }
-          at_exit { File.delete(Capcode.get(:pid)) if File.exist?(Capcode.get(:pid)) }
+          File.open(Capcode::Configuration.get(:pid), 'w'){ |f| f.write("#{Process.pid}") }
+          at_exit { File.delete(Capcode::Configuration.get(:pid)) if File.exist?(Capcode::Configuration.get(:pid)) }
         end
         
         app = nil
         if block_given?
-          app = application(Capcode.config) { yield( self ) }
+          app = application(Capcode::Configuration.get) { yield( self ) }
         else
-          app = application(Capcode.config)
+          app = application(Capcode::Configuration.get)
         end
-        app = Rack::CommonLogger.new( app, Logger.new(Capcode.get(:log)) )
+        app = Rack::CommonLogger.new( app, Logger.new(Capcode::Configuration.get(:log)) )
         
-        if Capcode.get(:console)
+        if Capcode::Configuration.get(:console)
           puts "Run console..."
           IRB.start
           exit
         end
         
         # Start server
-        case Capcode.get(:server).to_s
+        case Capcode::Configuration.get(:server).to_s
         when "mongrel"
-          puts "** Starting Mongrel on #{Capcode.get(:host)}:#{Capcode.get(:port)}"
-          Rack::Handler::Mongrel.run( app, {:Port => Capcode.get(:port), :Host => Capcode.get(:host)} ) { |server|
+          puts "** Starting Mongrel on #{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"
+          Rack::Handler::Mongrel.run( app, {:Port => Capcode::Configuration.get(:port), :Host => Capcode::Configuration.get(:host)} ) { |server|
             trap "SIGINT", proc { server.stop }
           }
         when "webrick"
-          puts "** Starting WEBrick on #{Capcode.get(:host)}:#{Capcode.get(:port)}"
-          Rack::Handler::WEBrick.run( app, {:Port => Capcode.get(:port), :BindAddress => Capcode.get(:host)} ) { |server|
+          puts "** Starting WEBrick on #{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"
+          Rack::Handler::WEBrick.run( app, {:Port => Capcode::Configuration.get(:port), :BindAddress => Capcode::Configuration.get(:host)} ) { |server|
             trap "SIGINT", proc { server.shutdown }
           }
         when "thin"
-          puts "** Starting Thin on #{Capcode.get(:host)}:#{Capcode.get(:port)}"
-          Rack::Handler::Thin.run( app, {:Port => Capcode.get(:port), :Host => Capcode.get(:host)} ) { |server|
+          puts "** Starting Thin on #{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"
+          Rack::Handler::Thin.run( app, {:Port => Capcode::Configuration.get(:port), :Host => Capcode::Configuration.get(:host)} ) { |server|
             trap "SIGINT", proc { server.stop }
           }
         end

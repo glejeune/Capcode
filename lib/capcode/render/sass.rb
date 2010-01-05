@@ -10,12 +10,12 @@ module Capcode
     # This method is deprecated and will be removed in version 1.0
     def self.sass_path=( p )
       warn "Capcode::Helpers.sass_path is deprecated and will be removed in version 1.0, please use `set :sass'"
-      Capcode.set :sass, p
+      Capcode::Configuration.set :sass, p
     end
     
     def render_sass( f, _ ) #:nodoc:
       if @sass_path.nil?
-        @sass_path = Capcode.get( :sass ) || Capcode.static() 
+        @sass_path = Capcode::Configuration.get( :sass ) || Capcode.static() 
       end
       
       f = f.to_s

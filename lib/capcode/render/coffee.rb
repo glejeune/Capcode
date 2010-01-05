@@ -10,12 +10,12 @@ module Capcode
     # This method is deprecated and will be removed in version 1.0
     def self.coffee_path=( p )
       warn "Capcode::Helpers.coffee_path is deprecated and will be removed in version 1.0, please use `set :coffee'"
-      Capcode.set :coffee, p
+      Capcode::Configuration.set :coffee, p
     end
     
     def render_coffee( f, opts ) #:nodoc:
       if @coffee_path.nil?
-        @coffee_path = Capcode.get( :coffee ) || Capcode.static()
+        @coffee_path = Capcode::Configuration.get( :coffee ) || Capcode.static()
       end
 
       f = f.to_s

@@ -7,7 +7,7 @@ end
 module Capcode
   module Helpers
     def render_mustache( f, opts = {} ) #:nodoc:
-      mustache_path = Capcode.get( :mustache ) || Capcode.static() 
+      mustache_path = Capcode::Configuration.get( :mustache ) || Capcode.static() 
       
       name = Mustache.classify(f.to_s)
       

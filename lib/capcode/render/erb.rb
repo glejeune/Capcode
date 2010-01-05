@@ -6,7 +6,7 @@ module Capcode
     # This method is deprecated and will be removed in version 1.0
     def self.erb_path=( p )
       warn "Capcode::Helpers.erb_path is deprecated and will be removed in version 1.0, please use `set :erb'"
-      Capcode.set :erb, p
+      Capcode::Configuration.set :erb, p
     end
     
     def get_binding #:nodoc:
@@ -15,7 +15,7 @@ module Capcode
     
     def render_erb( f, opts ) #:nodoc:
       if @erb_path.nil?
-        @erb_path = Capcode.get( :erb ) || Capcode.static()
+        @erb_path = Capcode::Configuration.get( :erb ) || Capcode.static()
       end
       
       f = f.to_s
