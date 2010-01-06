@@ -68,19 +68,21 @@ spec =
         
     s.post_install_message = <<EOM
 
-If you want to use Markaby renderer, you must install Markaby.
-If you want to use HAML renderer, you must install haml.
-If you want to use SASS renderer, you must install sass.
-If you want to use Mustache renderer, you must install mustache.
-If you want to use JSON renderer, you must install json.
-If you want to use WebDAV renderer, you must install rack_dav.
-If you want to use Mail renderer, you must install mail.
-
-If you want to use ActiveRecord, you must install active_record.
-If you want to use DataMapper, you must install dm-core.
-If you want to use Sequel, you must install sequel.
-If you want to use CouchDB, you must install couch_foo.
-If you want to use MongoDB, you must install mongoid.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!                                           !!
+!!    This version is a major anhencement    !!
+!!    -----------------------------------    !!
+!!                                           !!
+!!  Renderers and database accessors have    !!
+!!  been extracted and are now in the        !!
+!!  plugins repository :                     !!
+!!                                           !!
+!!  http://github.com/glejeune/Capcode.more  !!
+!!                                           !!
+!!  Each plugin is a gem that’s can be       !!
+!!  installed separately.                    !!
+!!                                           !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 For more information about Capcode, see 
   http://capcode.rubyforge.org
