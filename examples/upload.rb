@@ -1,5 +1,6 @@
 $:.unshift( "../lib" )
 require 'capcode'
+require 'rubygems'
 require 'capcode/render/markaby'
 require 'capcode/render/static'
 require 'fileutils'

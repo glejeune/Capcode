@@ -13,10 +13,14 @@ Capcode is a web microframework
 == FEATURES/PROBLEMS:
 
 === 0.9.0
-* Add {Coffee-Script}[http://jashkenas.github.com/coffee-script/] renderer 
-* Update renderers options
-* Rewrite configuration
-* Bug corrections in all DB modules
+
+* <b>IMPORTANT</b>
+  * Renderers and database accessors have been extracted and are now in the {plugins repository}[http://github.com/glejeune/Capcode.more]. Each plugin is a gem that's can be installed separately.
+* <b>Important, but less!</b>
+  * Add {Coffee-Script}[http://jashkenas.github.com/coffee-script/] renderer 
+  * Update renderers options
+  * Rewrite configuration
+  * Bug corrections in all DB modules
 
 === 0.8.9
 * Add Thin support

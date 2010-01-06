@@ -1,7 +1,7 @@
 $:.unshift( "../lib" )
 require 'capcode'
-require 'capcode/render/markaby'
 require 'rubygems'
+require 'capcode/render/markaby'
 require 'graphviz'
 require 'base64'
 

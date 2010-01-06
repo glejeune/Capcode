@@ -1,12 +1,10 @@
 $:.unshift( "../lib" )
-require 'rubygems'
 require 'capcode'
+require 'rubygems'
 require 'capcode/render/markaby'
 require 'capcode/render/haml'
-Capcode::Helpers.haml_path = "haml"
 require 'capcode/render/json'
 require 'capcode/render/erb'
-Capcode::Helpers.erb_path = "erb"
 
 module Capcode
   module Helpers
@@ -17,6 +15,9 @@ module Capcode
 end
 
 module Capcode
+  set :haml, "haml"
+  set :erb, "erb"
+  
   class HTTPError
     def r404(f)
       "Pas glop !!! #{f} est inconnu !!!"
