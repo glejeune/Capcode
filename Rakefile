@@ -70,8 +70,18 @@ spec =
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!                                           !!
-!!    This version is a major anhencement    !!
+!!    THIS VERSION IS A MAJOR ENHANCEMENT    !!
 !!    -----------------------------------    !!
+!!                                           !!
+!!  YOU MUST UNINSTALL ALL PREVIOUS          !!
+!!  VERSIONS !!!                             !!
+!!                                           !!
+!!  gem uninstall Capode --version '< 0.9.0' !!
+!!                                           !!
+!!  IF YOU DON'T DO IT, THIS ONE WILL NOT    !!
+!!  WORK !!!                                 !!
+!!                                           !!
+!!  Moreover :                               !!
 !!                                           !!
 !!  Renderers and database accessors have    !!
 !!  been extracted and are now in the        !!
