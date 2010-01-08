@@ -227,12 +227,13 @@ See <tt>examples/blog-dm.rb</tt> and/or <tt>examples/blog-couchdb.rb</tt> for co
   # file: sample.rb
   require 'rubygems'
   require 'capcode'
-  require 'capcode/render/markaby'
   
   module Capcode
     class Hello < Route '/hello'
       def get
         @t = Time.now
+        
+        # This implies that capcode-render-markaby is installed !
         render :markaby => :time
       end
     end
@@ -259,13 +260,15 @@ See <tt>examples/blog-dm.rb</tt> and/or <tt>examples/blog-couchdb.rb</tt> for co
   # file: sample.rb
   require 'rubygems'
   require 'capcode'
-  require 'capcode/render/haml'
-  Capcode::Helpers.haml_path = "./my_haml_views"
 
   module Capcode
+    set :haml, "./my_haml_views"
+  
     class Hello < Route '/hello'
       def get
         @t = Time.now
+        
+        # This implies that capcode-render-haml is installed !
         render :haml => :time
       end
     end
@@ -285,12 +288,13 @@ See <tt>examples/blog-dm.rb</tt> and/or <tt>examples/blog-couchdb.rb</tt> for co
   # file: sample.rb
   require 'rubygems'
   require 'capcode'
-  require 'capcode/render/json'
 
   module Capcode
     class Hello < Route '/hello'
       def get
         @t = Time.now
+
+        # This implies that capcode-render-json is installed !
         render :json => { :time => @t }
       end
     end
@@ -303,13 +307,13 @@ See <tt>examples/blog-dm.rb</tt> and/or <tt>examples/blog-couchdb.rb</tt> for co
   # file: sample.rb
   require 'rubygems'
   require 'capcode'
-  require 'capcode/render/webdav'
   
   module Capcode
   
     # !!! Render file from /Users/greg/temp !!!
     class WebDav < Route '/temp'
       def get
+        # This implies that capcode-render-webdav is installed !
         render :webdav => "/Users/greg/temp"
       end
       
