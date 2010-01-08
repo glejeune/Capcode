@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'capcode'
-require 'capcode/render/erb'
 require 'faye'
 
 module Capcode

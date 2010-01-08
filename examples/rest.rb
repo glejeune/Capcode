@@ -1,7 +1,6 @@
 $:.unshift( "../lib" )
 require 'capcode'
 require 'rubygems'
-require 'capcode/render/markaby'
 
 module Capcode
   class Index < Route '/'

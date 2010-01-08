@@ -1,7 +1,6 @@
 $:.unshift( "../lib" )
 require 'capcode'
 require 'rubygems'
-require 'capcode/render/markaby'
 require 'graphviz'
 require 'base64'
 
@@ -40,8 +39,8 @@ module Capcode
   
   class Inline < Route '/inline/(.*)'
     def get(path)
-      @image = Base64.b64encode(hello(path))
-      
+      @image = Base64.encode64(hello(path))
+
       render :markaby => :inline
     end
   end

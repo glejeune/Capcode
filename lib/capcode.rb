@@ -81,19 +81,29 @@ module Capcode
       if hash.class == Hash
         render_type = nil
         
-        hash.keys.each do |key|
-          if self.respond_to?("render_#{key.to_s}")
-            unless render_type.nil?
-              raise Capcode::RenderError, "Can't use multiple renderer (`#{render_type}' and `#{key}') !", caller
+        if render_type.nil?
+          hash.keys.each do |key|
+            begin
+              gem "capcode-render-#{key.to_s}"
+              require "capcode/render/#{key.to_s}"
+            rescue Gem::LoadError
+              nil
+            rescue LoadError
+              raise Capcode::RenderError, "Hum... The #{key} renderer is malformated! Please try to install a new version or use an other renderer!", caller
             end
-            render_type = key
+       
+            if self.respond_to?("render_#{key.to_s}")
+              unless render_type.nil?
+                raise Capcode::RenderError, "Can't use multiple renderer (`#{render_type}' and `#{key}') !", caller
+              end
+              render_type = key
+            end
+          end
+          
+          if render_type.nil?
+            raise Capcode::RenderError, "Renderer type not specified!", caller
           end
         end
-        
-        if render_type.nil?
-          raise Capcode::RenderError, "Renderer type not specified!", caller
-        end
-
         unless self.respond_to?("render_#{render_type.to_s}")
           raise Capcode::RenderError, "#{render_type} renderer not present ! please require 'capcode/render/#{render_type}'", caller
         end

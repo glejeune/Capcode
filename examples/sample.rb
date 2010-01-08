@@ -1,10 +1,6 @@
 $:.unshift( "../lib" )
 require 'capcode'
 require 'rubygems'
-require 'capcode/render/markaby'
-require 'capcode/render/haml'
-require 'capcode/render/json'
-require 'capcode/render/erb'
 
 module Capcode
   module Helpers
