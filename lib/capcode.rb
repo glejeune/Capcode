@@ -4,7 +4,7 @@ require 'rubygems'
 require 'rack'
 require 'json' ## DELETE THIS IN 1.0.0
 require 'logger'
-Logger.class_eval { alias :write :"<<" } unless Logger.instance_methods.include? "write"
+Logger.class_eval { alias :write :<< } unless Logger.instance_methods.include? "write"
 require 'optparse'
 require 'irb'
 require 'mime/types'

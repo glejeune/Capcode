@@ -70,7 +70,7 @@ spec =
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!                                           !!
-!!    THIS VERSION IS A MAJOR ENHANCEMENT    !!
+!!       0.9.0 WAS A MAJOR ENHANCEMENT       !!
 !!    -----------------------------------    !!
 !!                                           !!
 !!  YOU MUST UNINSTALL ALL PREVIOUS          !!

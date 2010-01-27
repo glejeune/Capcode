@@ -12,6 +12,11 @@ class Regexp
     end
     c
   end
+  
+  # From http://facets.rubyforge.org/apidoc/api/core/classes/Regexp.html
+  def arity #:nodoc:
+    self.source.scan( /(?!\\)[(](?!\?[#=:!>-imx])/ ).length
+  end
 end
 
 class Hash

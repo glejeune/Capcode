@@ -14,6 +14,7 @@ Capcode is a web microframework
 
 === 0.9.1
 * You don't need to require the renderers. This will be done by Capcode at use time.
+* Major bug correction for jRuby
 
 === 0.9.0
 
