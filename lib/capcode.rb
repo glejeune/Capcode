@@ -2,7 +2,6 @@
 
 require 'rubygems'
 require 'rack'
-require 'json' ## DELETE THIS IN 1.0.0
 require 'logger'
 Logger.class_eval { alias :write :<< } unless Logger.instance_methods.include? "write"
 require 'optparse'
@@ -137,8 +136,7 @@ module Capcode
     # <b>DEPRECATED</b>, please use <tt>render( :json => o )</tt>
     def json( d ) ## DELETE THIS IN 1.0.0
       warn( "json is deprecated and will be removed in version 1.0, please use `render( :json => ... )'" )
-      @response['Content-Type'] = 'application/json'
-      d.to_json
+      render :json => d
     end
     
     # Send a redirect response
