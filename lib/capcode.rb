@@ -67,6 +67,10 @@ module Capcode
     # * :xml => :my_func : :my_func must be defined in Capcode::Views
     # * :webdav => /path/to/root
     #
+    # Or you can use a "HTTP code" renderer :
+    #
+    #   render 200 => "Ok", :server => "Capcode #{Capcode::CAPCOD_VERION}", ...
+    #
     # If you want to use a specific layout, you can specify it with option 
     #   :layout
     #
@@ -79,6 +83,7 @@ module Capcode
     def render( hash )
       if hash.class == Hash
         render_type = nil
+        possible_code_renderer = nil
         
         if render_type.nil?
           hash.keys.each do |key|
@@ -97,26 +102,41 @@ module Capcode
               end
               render_type = key
             end
+            
+            if key.class == Fixnum
+              possible_code_renderer = key
+            end
           end
           
-          if render_type.nil?
+          if render_type.nil? and possible_code_renderer.nil?
             raise Capcode::RenderError, "Renderer type not specified!", caller
           end
         end
         unless self.respond_to?("render_#{render_type.to_s}")
-          raise Capcode::RenderError, "#{render_type} renderer not present ! please require 'capcode/render/#{render_type}'", caller
-        end
-
-        render_name = hash.delete(render_type)
-        content_type = hash.delete(:content_type)
-        unless content_type.nil?
-          @response['Content-Type'] = content_type
-        end
-
-        begin
-          self.send( "render_#{render_type.to_s}", render_name, hash )
-        rescue => e
-          raise Capcode::RenderError, "Error rendering `#{render_type.to_s}' : #{e.message}", caller
+          if possible_code_renderer.nil?
+            raise Capcode::RenderError, "#{render_type} renderer not present ! please require 'capcode/render/#{render_type}'", caller
+          else
+            code = possible_code_renderer
+            body = hash.delete(possible_code_renderer)
+            header = {}
+            hash.each do |k, v|
+              k = k.to_s.split(/_/).map{|e| e.capitalize}.join("-")
+              header[k] = v
+            end
+            [code, hash, body]
+          end
+        else
+          render_name = hash.delete(render_type)
+          content_type = hash.delete(:content_type)
+          unless content_type.nil?
+            @response['Content-Type'] = content_type
+          end
+          
+          begin
+            self.send( "render_#{render_type.to_s}", render_name, hash )
+          rescue => e
+            raise Capcode::RenderError, "Error rendering `#{render_type.to_s}' : #{e.message}", caller
+          end
         end
       else
         render( :text => hash )
