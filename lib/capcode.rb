@@ -12,6 +12,7 @@ require 'capcode/core_ext'
 require 'capcode/helpers/auth'
 require 'capcode/render/text'
 require 'capcode/configuration'
+require 'capcode/filters'
 
 module Capcode
   #@@__ROUTES = {}
@@ -23,7 +24,6 @@ module Capcode
   #   opts[:action] = b
   #   @@__FILTERS << opts
   # end
-  
   
   class ParameterError < ArgumentError #:nodoc: all
   end
@@ -464,15 +464,21 @@ module Capcode
               args << nil
             end
 
-            case @env["REQUEST_METHOD"]
-              when "GET"                      
-                get( *args )
-              when "POST"
-                _method = params.delete( "_method" ) { |_| "post" }
-                send( _method.downcase.to_sym, *args )
-              else
-                _method = @env["REQUEST_METHOD"]
-                send( _method.downcase.to_sym, *args )
+            filter_output = Capcode::Filter.execute( self )
+
+            if( filter_output.nil? )
+              case @env["REQUEST_METHOD"]
+                when "GET"                      
+                  get( *args )
+                when "POST"
+                  _method = params.delete( "_method" ) { |_| "post" }
+                  send( _method.downcase.to_sym, *args )
+                else
+                  _method = @env["REQUEST_METHOD"]
+                  send( _method.downcase.to_sym, *args )
+              end
+            else
+              filter_output
             end
           }
           if r.respond_to?(:to_ary)

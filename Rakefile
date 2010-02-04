@@ -11,7 +11,6 @@ NAME = "Capcode"
 VERS = Capcode::CAPCOD_VERION
 CLEAN.include ['**/.*.sw?', '*.gem', '.config', 'test/test.log']
 RDOC_OPTS = ['--quiet', '--title', "Capcode, the Documentation",
-  "--opname", "index.html",
   "--line-numbers",
   "--main", "README.rdoc",
   "--inline-source"]
@@ -33,7 +32,8 @@ Rake::RDocTask.new do |rdoc|
     'COPYING',
     'lib/capcode.rb',
     'lib/capcode/base/db.rb',
-    'lib/capcode/configuration.rb'
+    'lib/capcode/configuration.rb',
+    'lib/capcode/filters.rb'
   ] + Dir.glob( "lib/capcode/render/*.rb" ) + Dir.glob( "lib/capcode/helpers/*.rb" )
 end
 
