@@ -108,6 +108,13 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
+namespace :gemcutter do
+  desc "push to gemcutter"
+  task :push do
+    sh %{gem push pkg/#{NAME}-#{VERS}.gem}, :verbose => true
+  end
+end
+
 task :install do
   sh %{rake package}
   sh %{sudo gem install pkg/#{NAME}-#{VERS}}
