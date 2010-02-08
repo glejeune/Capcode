@@ -16,6 +16,7 @@ Capcode is a web microframework
 * Remove JSON dependency
 * Add the "HTTP code" renderer, so you can now use something like this : render 200 => "OK", :server => "Capcode", ...
 * Reintroduce before_filter. {See example filter.rb}[http://github.com/glejeune/Capcode/tree/master/examples/filter.rb].
+* Remove mime-types dependency
 
 === 0.9.1
 * You don't need to require the renderers. This will be done by Capcode at use time.
