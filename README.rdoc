@@ -12,6 +12,9 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.9.3
+* Minor bug correction
+
 === 0.9.2
 * Remove JSON dependency
 * Add the "HTTP code" renderer, so you can now use something like this : render 200 => "OK", :server => "Capcode", ...

@@ -271,7 +271,7 @@ module Capcode
     def static
       { 
         :uri => Capcode.static,
-        :path => File.expand_path( File.join(".", Capcode.static ) )
+        :path => File.expand_path( File.join(Capcode::Configuration.get(:root), Capcode::Configuration.get(:static) ) )
       }
     end
     
@@ -594,7 +594,7 @@ module Capcode
       puts "** Map routes." if Capcode::Configuration.get(:verbose)
       #app = Rack::URLMap.new(@@__ROUTES)
       app = Rack::URLMap.new(Capcode.routes)
-      puts "** Initialize static directory (#{Capcode::Configuration.get(:static)})" if Capcode::Configuration.get(:verbose)
+      puts "** Initialize static directory (#{Capcode.static}) in #{File.expand_path(Capcode::Configuration.get(:root))}" if Capcode::Configuration.get(:verbose)
       app = Rack::Static.new( 
         app, 
         #:urls => [@@__STATIC_DIR], 
