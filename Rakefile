@@ -3,6 +3,8 @@ require 'rake/clean'
 require 'rake/gempackagetask'
 require 'rake/rdoctask'
 require 'rake/testtask'
+require 'json/pure'
+require 'open-uri'
 require 'fileutils'
 require './lib/capcode/version'
 include FileUtils
@@ -112,6 +114,17 @@ namespace :gemcutter do
   desc "push to gemcutter"
   task :push do
     sh %{gem push pkg/#{NAME}-#{VERS}.gem}, :verbose => true
+  end
+  
+  desc "check gemcutter status"
+  task :status do
+    url = "http://gemcutter.org/api/v1/gems/#{NAME}.json"
+    version = JSON.parse( open(url).read )["version"]
+    if version == VERS
+      puts "This gem already existe in version #{VERS}!"
+    else
+      puts "This gem (#{VERS}) has nos been published! Last version at gemcutter is #{version}"
+    end
   end
 end
 
