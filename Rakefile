@@ -111,23 +111,47 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
+class Rubygems
+  def initialize
+    url = "http://rubygems.org/api/v1/gems/#{NAME}.json"
+    @version_at_rubygems = JSON.parse( open(url).read )["version"]
+  end
+  
+  def status
+    version == VERS
+  end
+  def self.status
+    self.new.status
+  end
+  
+  def version
+    @version_at_rubygems
+  end
+  def self.version
+    self.new.version
+  end
+end
+
 namespace :gemcutter do
   desc "push to gemcutter"
-  task :push do
-    sh %{gem push pkg/#{NAME}-#{VERS}.gem}, :verbose => true
+  task :push => [:package] do
+    unless Rubygems.status
+      sh %{gem push pkg/#{NAME}-#{VERS}.gem}, :verbose => true
+    else
+      puts "This gem already existe in version #{VERS}!"
+    end
   end
   
   desc "check gemcutter status"
   task :status do
-    url = "http://gemcutter.org/api/v1/gems/#{NAME}.json"
-    version = JSON.parse( open(url).read )["version"]
-    if version == VERS
+    if Rubygems.status
       puts "This gem already existe in version #{VERS}!"
     else
-      puts "This gem (#{VERS}) has nos been published! Last version at gemcutter is #{version}"
+      puts "This gem (#{VERS}) has nos been published! Last version at gemcutter is #{Rubygems.version}"
     end
   end
 end
+
 
 task :install do
   sh %{rake package}
