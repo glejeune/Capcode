@@ -12,6 +12,9 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.9.4
+* You can now create a controler without specifying the root name. If so the name of the class will be used. {see example route.rb}[http://github.com/glejeune/Capcode/tree/master/examples/route.rb].
+
 === 0.9.3
 * Major bug correction
 

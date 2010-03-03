@@ -7,6 +7,7 @@ Logger.class_eval { alias :write :<< } unless Logger.instance_methods.include? "
 require 'optparse'
 require 'irb'
 require 'mime/types'
+require 'active_support'
 require 'capcode/version'
 require 'capcode/core_ext'
 require 'capcode/helpers/auth'
@@ -15,16 +16,6 @@ require 'capcode/configuration'
 require 'capcode/filters'
 
 module Capcode
-  #@@__ROUTES = {}
-  #@@__STATIC_DIR = nil
-  #@@__APP = nil
-  
-  # @@__FILTERS = []
-  # def self.before_filter( opts, &b )
-  #   opts[:action] = b
-  #   @@__FILTERS << opts
-  # end
-  
   class ParameterError < ArgumentError #:nodoc: all
   end
   
@@ -332,8 +323,10 @@ module Capcode
     # 
     # If the regexp in the route does not match, all arguments will be <tt>nil</tt>
     def Route *routes_paths
+      create_path = routes_paths[0].nil?
       Class.new {
         meta_def(:__urls__) {
+          routes_paths = ['/'+self.to_s.gsub( /^Capcode::/, "" ).underscore] if create_path == true
           # < Route '/hello/world/([^\/]*)/id(\d*)', '/hello/(.*)', :agent => /Songbird (\d\.\d)[\d\/]*?/
           # # => [ {'/hello/world' => '([^\/]*)/id(\d*)', '/hello' => '(.*)'}, 
           #        2, 
@@ -390,21 +383,6 @@ module Capcode
           @env = e
           @response = Rack::Response.new
           @request = Rack::Request.new(@env)
-
-          # __k = self.class.to_s.split( /::/ )[-1].downcase.to_sym
-          # @@__FILTERS.each do |f|
-          #   proc = f.delete(:action)
-          #   __run = true
-          #   if f[:only]
-          #     __run = f[:only].include?(__k)
-          #   end
-          #   if f[:except]
-          #     __run = !f[:except].include?(__k)
-          #   end
-          #   
-          #   # proc.call(self) if __run
-          #   puts "call #{proc} for #{__k}"
-          # end
 
           # Check authz
           authz_options = nil
@@ -499,7 +477,8 @@ module Capcode
         include Capcode::Views
       }      
     end
-  
+    Capcode::Route = Capcode::Route(nil)
+    
     # This method help you to map and URL to a Rack or What you want Helper
     # 
     #   Capcode.map( "/file" ) do
@@ -570,7 +549,20 @@ module Capcode
     def application( args = {} )
       Capcode::Configuration.configuration(args)
       
-      Capcode.constants.each do |k|
+      Capcode.constants.clone.delete_if {|k| 
+        not( Capcode.const_get(k).to_s =~ /Capcode/ ) or [
+          "Filter", 
+          "Helpers", 
+          "RouteError", 
+          "Views", 
+          "ParameterError", 
+          "HTTPError", 
+          "Configuration", 
+          "MissingLibrary", 
+          "Route", 
+          "RenderError"
+        ].include?(k)
+      }.each do |k|
         begin
           if eval "Capcode::#{k}.public_methods(true).include?( '__urls__' )"
             hash_of_routes, max_captures_for_routes, klass = eval "Capcode::#{k}.__urls__"
