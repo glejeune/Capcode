@@ -60,6 +60,7 @@ spec =
     s.rubyforge_project = 'capcode'
 
     s.add_dependency('rack')
+    s.add_dependency('active_support')
     # s.add_dependency('mime-types')
     s.required_ruby_version = ">= 1.8.1"
 
