@@ -12,7 +12,7 @@ module Capcode
     def post
       FileUtils.cp( 
         params["upfile"][:tempfile].path, 
-        File.join( static[:path], params["upfile"][:filename] )
+        ::File.join( static[:path], params["upfile"][:filename] )
       )
       render :static => params["upfile"][:filename]
     end

@@ -3,26 +3,30 @@ require 'capcode'
 
 module Capcode
   class HTTPError
-    def r404(f)
-      "Pas glop !!! #{f} est inconnu !!!"
+    def r404(f, h)
+      h['Content-Type'] = 'text/plain'
+      "You are here ---> X (#{f} point)"
     end
   end
   
-  class Index < Route
+  # Access via GET /index
+  class Index < Route 
     def get
       render "Hello Index!"
     end
   end
   
-  class MainTruc < Route
+  # Acces via GET /foo_bar
+  class FooBar < Route
     def get
-      render "Hello Main!"
+      render "Hello FooBar!"
     end
   end
   
-  class Pipo < Route '/not_pipo'
+  # Access via GET /bar
+  class Foo < Route '/bar'
     def get 
-      render "Hello Pipo!"
+      render "Hello Foo!"
     end
   end
 end

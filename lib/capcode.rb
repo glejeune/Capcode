@@ -6,7 +6,6 @@ require 'logger'
 Logger.class_eval { alias :write :<< } unless Logger.instance_methods.include? "write"
 require 'optparse'
 require 'irb'
-require 'mime/types'
 require 'active_support'
 require 'capcode/version'
 require 'capcode/core_ext'
@@ -33,7 +32,6 @@ module Capcode
   
   # Helpers contains methods available in your controllers
   module Helpers
-    #@@__ARGS__ = nil
     def self.args
       @args ||= nil
     end
@@ -71,38 +69,37 @@ module Capcode
     #
     # If you use the WebDav renderer, you can use the option 
     #   :resource_class (see http://github.com/georgi/rack_dav for more informations)
-    def render( hash )
+    def render( hash )      
       if hash.class == Hash
         render_type = nil
         possible_code_renderer = nil
         
-        if render_type.nil?
-          hash.keys.each do |key|
-            begin
-              gem "capcode-render-#{key.to_s}"
-              require "capcode/render/#{key.to_s}"
-            rescue Gem::LoadError
-              nil
-            rescue LoadError
-              raise Capcode::RenderError, "Hum... The #{key} renderer is malformated! Please try to install a new version or use an other renderer!", caller
+        hash.keys.each do |key|
+          begin
+            gem "capcode-render-#{key.to_s}"
+            require "capcode/render/#{key.to_s}"
+          rescue Gem::LoadError
+            nil
+          rescue LoadError
+            raise Capcode::RenderError, "Hum... The #{key} renderer is malformated! Please try to install a new version or use an other renderer!", caller
+          end
+        
+          if self.respond_to?("render_#{key.to_s}")
+            unless render_type.nil?
+              raise Capcode::RenderError, "Can't use multiple renderer (`#{render_type}' and `#{key}') !", caller
             end
-       
-            if self.respond_to?("render_#{key.to_s}")
-              unless render_type.nil?
-                raise Capcode::RenderError, "Can't use multiple renderer (`#{render_type}' and `#{key}') !", caller
-              end
-              render_type = key
-            end
-            
-            if key.class == Fixnum
-              possible_code_renderer = key
-            end
+            render_type = key
           end
           
-          if render_type.nil? and possible_code_renderer.nil?
-            raise Capcode::RenderError, "Renderer type not specified!", caller
+          if key.class == Fixnum
+            possible_code_renderer = key
           end
         end
+        
+        if render_type.nil? and possible_code_renderer.nil?
+          raise Capcode::RenderError, "Renderer type not specified!", caller
+        end
+        
         unless self.respond_to?("render_#{render_type.to_s}")
           if possible_code_renderer.nil?
             raise Capcode::RenderError, "#{render_type} renderer not present ! please require 'capcode/render/#{render_type}'", caller
@@ -114,7 +111,8 @@ module Capcode
               k = k.to_s.split(/_/).map{|e| e.capitalize}.join("-")
               header[k] = v
             end
-            [code, hash, body]
+            
+            [code, header, body]
           end
         else
           render_name = hash.delete(render_type)
@@ -249,7 +247,6 @@ module Capcode
     #     end
     #   end
     def content_for( x )
-      #if @@__ARGS__.map{|_| _.to_s }.include?(x.to_s)
       if Capcode::Helpers.args.map{|_| _.to_s }.include?(x.to_s)
         yield
       end
@@ -284,6 +281,18 @@ module Capcode
   #     end
   #   end
   #
+  # the rXXX method can also receive a second optional parameter corresponding 
+  # of the header's Hash :
+  #
+  #   module Capcode
+  #     class HTTPError
+  #       def r404(f, h)
+  #         h['Content-Type'] = 'text/plain'
+  #         "You are here ---> X (#{f} point)"
+  #       end
+  #     end
+  #   end
+  #
   # Do the same (r500, r501, r403) to customize 500, 501, 403 errors
   class HTTPError
     def initialize(app) #:nodoc:
@@ -292,10 +301,15 @@ module Capcode
 
     def call(env) #:nodoc:
       status, headers, body = @app.call(env)
-      
       if self.methods.include? "r#{status}"
-        body = self.send( "r#{status}", env['REQUEST_PATH'] )
+        headers.delete('Content-Type') if headers.keys.include?('Content-Type')
+        body = begin
+          self.send( "r#{status}", env['REQUEST_PATH'], headers )
+        rescue
+          self.send( "r#{status}", env['REQUEST_PATH'] )
+        end
         headers['Content-Length'] = body.length.to_s
+        headers['Content-Type'] = "text/html" unless headers.keys.include?('Content-Type')
       end
       
       [status, headers, body]
@@ -426,7 +440,10 @@ module Capcode
                   finalArgs = diffArgs
                 end
               end
-              
+            end
+        
+            if finalNArgs > self.class.__urls__[1]
+              return [404, {'Content-Type' => 'text/plain'}, "Not Found: #{@request.path}"]
             end
         
             nargs = self.class.__urls__[1]
@@ -459,17 +476,18 @@ module Capcode
               filter_output
             end
           }
+          
           if r.respond_to?(:to_ary)
             @response.status = r.shift #r[0]
             #r[1].each do |k,v|
             r.shift.each do |k,v|
               @response[k] = v
             end
-            @response.body = r.shift #r[2]
+            @response.write r.shift #r[2]
           else
             @response.write r
           end
-                    
+          
           @response.finish
         end
                 
@@ -485,7 +503,6 @@ module Capcode
     #     Rack::File.new( "." )
     #   end
     def map( route, &b )
-      #@@__ROUTES[route] = yield
       Capcode.routes[route] = yield
     end
     
@@ -565,11 +582,10 @@ module Capcode
       }.each do |k|
         begin
           if eval "Capcode::#{k}.public_methods(true).include?( '__urls__' )"
-            hash_of_routes, max_captures_for_routes, klass = eval "Capcode::#{k}.__urls__"
+            hash_of_routes, max_captures_for_routes, klass = eval "Capcode::#{k}.__urls__"            
             hash_of_routes.keys.each do |current_route_path|
               #raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if @@__ROUTES.keys.include?(current_route_path)
               raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if Capcode.routes.keys.include?(current_route_path)
-              #@@__ROUTES[current_route_path] = klass.new
               Capcode.routes[current_route_path] = klass.new
             end
           end
@@ -579,12 +595,10 @@ module Capcode
       end
       
       # Set Static directory
-      #@@__STATIC_DIR = (conf[:static][0].chr == "/")?conf[:static]:"/"+conf[:static] unless conf[:static].nil?
       Capcode.static = (Capcode::Configuration.get(:static)[0].chr == "/")?Capcode::Configuration.get(:static):"/"+Capcode::Configuration.get(:static) unless Capcode::Configuration.get(:static).nil?
       
       # Initialize Rack App
       puts "** Map routes." if Capcode::Configuration.get(:verbose)
-      #app = Rack::URLMap.new(@@__ROUTES)
       app = Rack::URLMap.new(Capcode.routes)
       puts "** Initialize static directory (#{Capcode.static}) in #{File.expand_path(Capcode::Configuration.get(:root))}" if Capcode::Configuration.get(:verbose)
       app = Rack::Static.new( 
@@ -600,7 +614,6 @@ module Capcode
       app = Rack::Lint.new(app)
       app = Rack::ShowExceptions.new(app)
       #app = Rack::Reloader.new(app) ## -- NE RELOAD QUE capcode.rb -- So !!!
-      # app = Rack::CommonLogger.new( app, Logger.new(conf[:log]) )
       
       middlewares.each do |mw|
         middleware, args, block = mw
@@ -755,16 +768,13 @@ module Capcode
     end
 
     def routes #:nodoc:
-      #@@__ROUTES
       @routes ||= {}
     end
     
     def static #:nodoc:
-      #@@__STATIC_DIR
       @static_dir ||= nil
     end
     def static=(x) #:nodoc:
-      #@@__STATIC_DIR
       @static_dir = x
     end
     
