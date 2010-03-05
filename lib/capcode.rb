@@ -201,17 +201,39 @@ module Capcode
     #   URL( Capcode::Hello, "you" ) # => /hello/you
     def URL( klass, *a )
       path = nil
+      result = {}
+      
       a = a.delete_if{ |x| x.nil? }
       
       if klass.class == Class
-        Capcode.routes.each do |p, k|
-          path = p if k.class == klass
+        last_size = 0
+        
+        klass.__urls__[0].each do |cpath, regexp|
+          data = a.clone
+          
+          n = Regexp.new( regexp ).number_of_captures
+          equart = (a.size - n).abs
+          
+          rtable = regexp.dup.gsub( /\\\(/, "" ).gsub( /\\\)/, "" ).split( /\([^\)]*\)/ )
+          
+          rtable.each do |r|
+            if r == ""
+              cpath = cpath + "/#{data.shift}"
+            else
+              cpath = cpath + "/#{r}"
+            end
+          end
+          
+          cpath = (cpath + "/" + data.join( "/" )).gsub( /\/\//, "/" ).gsub( /\/$/, "" )
+          result[equart] = cpath
         end
+        
+        path = result[result.keys.min]
       else
         path = klass
       end
       
-      (ENV['RACK_BASE_URI']||'')+path+((a.size>0)?("/"+a.join("/")):(""))
+      (ENV['RACK_BASE_URI']||'')+path
     end
     
     # Calling content_for stores a block of markup in an identifier.
@@ -433,7 +455,7 @@ module Capcode
               xPath = p.gsub( /^\//, "" ).split( "/" )
               if (xPath - aPath).size == 0
                 diffArgs = aPath - xPath
-                diffNArgs = diffArgs.size
+                diffNArgs = diffArgs.size - 1
                 if finalNArgs.nil? or finalNArgs > diffNArgs
                   finalPath = p
                   finalNArgs = diffNArgs
@@ -441,7 +463,7 @@ module Capcode
                 end
               end
             end
-        
+            
             if finalNArgs > self.class.__urls__[1]
               return [404, {'Content-Type' => 'text/plain'}, "Not Found: #{@request.path}"]
             end

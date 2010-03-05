@@ -17,6 +17,7 @@ Capcode is a web microframework
 * Major bug correction in Route
 * render :text => ... now really render text 
 * rXXX methods in HTTPError can now receive a second optional parameter corresponding to headers
+* Huge bug correction in Capcode::Helpers.URL
 
 === 0.9.3
 * Major bug correction
