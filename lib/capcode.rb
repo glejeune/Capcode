@@ -653,6 +653,7 @@ module Capcode
       end
       
       if block_given?
+        puts "** Execute block" if Capcode::Configuration.get(:verbose)
         yield( self )
       end
       

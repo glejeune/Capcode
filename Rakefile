@@ -147,7 +147,7 @@ namespace :gemcutter do
     if Rubygems.status
       puts "This gem already existe in version #{VERS}!"
     else
-      puts "This gem (#{VERS}) has nos been published! Last version at gemcutter is #{Rubygems.version}"
+      puts "This gem (#{VERS}) has not been published! Last version at gemcutter is #{Rubygems.version}"
     end
   end
 end
