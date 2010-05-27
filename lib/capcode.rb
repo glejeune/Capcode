@@ -14,6 +14,8 @@ require 'capcode/render/text'
 require 'capcode/configuration'
 require 'capcode/filters'
 
+require 'capcode/ext/rack/urlmap'
+
 module Capcode
   class ParameterError < ArgumentError #:nodoc: all
   end
@@ -69,7 +71,7 @@ module Capcode
     #
     # If you use the WebDav renderer, you can use the option 
     #   :resource_class (see http://github.com/georgi/rack_dav for more informations)
-    def render( hash )      
+    def render( hash )
       if hash.class == Hash
         render_type = nil
         possible_code_renderer = nil
@@ -338,6 +340,8 @@ module Capcode
     end
   end
     
+  require 'capcode/response'
+  
   class << self
     attr :__auth__, true #:nodoc:
     
@@ -514,7 +518,7 @@ module Capcode
         end
                 
         include Capcode::Helpers
-        include Capcode::Views
+        include Capcode::Views        
       }      
     end
     Capcode::Route = Capcode::Route(nil)
@@ -608,7 +612,8 @@ module Capcode
             hash_of_routes.keys.each do |current_route_path|
               #raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if @@__ROUTES.keys.include?(current_route_path)
               raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if Capcode.routes.keys.include?(current_route_path)
-              Capcode.routes[current_route_path] = klass.new
+#              Capcode.routes[current_route_path] = klass.new
+              Capcode.routes[current_route_path] = klass
             end
           end
         rescue => e
@@ -621,7 +626,8 @@ module Capcode
       
       # Initialize Rack App
       puts "** Map routes." if Capcode::Configuration.get(:verbose)
-      app = Rack::URLMap.new(Capcode.routes)
+#      app = Rack::URLMap.new(Capcode.routes)
+      app = Capcode::Ext::Rack::URLMap.new(Capcode.routes)
       puts "** Initialize static directory (#{Capcode.static}) in #{File.expand_path(Capcode::Configuration.get(:root))}" if Capcode::Configuration.get(:verbose)
       app = Rack::Static.new( 
         app, 
