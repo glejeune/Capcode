@@ -340,8 +340,6 @@ module Capcode
     end
   end
     
-  require 'capcode/response'
-  
   class << self
     attr :__auth__, true #:nodoc:
     
