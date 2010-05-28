@@ -589,6 +589,7 @@ module Capcode
     # Options set here replace the ones set globally
     def application( args = {} )
       Capcode::Configuration.configuration(args)
+      Capcode::Configuration.print_debug if Capcode::Configuration.get(:verbose)
       
       Capcode.constants.clone.delete_if {|k| 
         not( Capcode.const_get(k).to_s =~ /Capcode/ ) or [

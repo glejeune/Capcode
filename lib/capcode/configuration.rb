@@ -25,6 +25,12 @@ module Capcode
         @configuration ||= {}
       end
       
+      def print_debug
+        Capcode::Configuration.config.each do |k, v|
+          puts "** [CONFIG] : #{k} = #{v}"
+        end
+      end
+      
       # Set global configuration options
       #
       # Options :

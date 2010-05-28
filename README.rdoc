@@ -12,6 +12,9 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.9.6
+* More debug trace
+
 === 0.9.5
 * Major bug correction
 
