@@ -14,6 +14,7 @@ Capcode is a web microframework
 
 === 0.9.6
 * More debug trace
+* Bug correction in the custom version of Rack::URLmap
 
 === 0.9.5
 * Major bug correction

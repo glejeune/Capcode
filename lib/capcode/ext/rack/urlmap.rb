@@ -46,10 +46,19 @@ module Capcode
             next unless path =~ match && rest = $1
             next unless rest.empty? || rest[0] == ?/
     
-            return app.new.call(
-              env.merge(
-                'SCRIPT_NAME' => (script_name + location),
-                'PATH_INFO'   => rest))
+            # ----------------- CHANGE IS HERE --------------------
+            if app.kind_of?(Class)
+              return app.new.call(
+                env.merge(
+                  'SCRIPT_NAME' => (script_name + location),
+                  'PATH_INFO'   => rest))
+            else
+              return app.call(
+                env.merge(
+                  'SCRIPT_NAME' => (script_name + location),
+                  'PATH_INFO'   => rest))
+            end
+            # ----------------- CHANGE IS HERE --------------------
           }
           [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
         end
