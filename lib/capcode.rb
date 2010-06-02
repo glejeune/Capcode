@@ -204,12 +204,10 @@ module Capcode
     def URL( klass, *a )
       path = nil
       result = {}
-      
+
       a = a.delete_if{ |x| x.nil? }
       
       if klass.class == Class
-        last_size = 0
-        
         klass.__urls__[0].each do |cpath, regexp|
           data = a.clone
           
@@ -217,7 +215,6 @@ module Capcode
           equart = (a.size - n).abs
           
           rtable = regexp.dup.gsub( /\\\(/, "" ).gsub( /\\\)/, "" ).split( /\([^\)]*\)/ )
-          
           rtable.each do |r|
             if r == ""
               cpath = cpath + "/#{data.shift}"
@@ -225,11 +222,12 @@ module Capcode
               cpath = cpath + "/#{r}"
             end
           end
-          
-          cpath = (cpath + "/" + data.join( "/" )).gsub( /\/\//, "/" ).gsub( /\/$/, "" )
+
+          cpath = (cpath + "/" + data.join( "/" )) if data.size > 0
+          cpath = cpath.gsub( /(\/){2,}/, "/" )
           result[equart] = cpath
         end
-        
+
         path = result[result.keys.min]
       else
         path = klass

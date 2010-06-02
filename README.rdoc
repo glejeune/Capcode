@@ -13,6 +13,7 @@ Capcode is a web microframework
 == FEATURES/PROBLEMS:
 
 === 0.9.7
+* Major bug correction in Capcode.URL
 
 === 0.9.6
 * More debug trace

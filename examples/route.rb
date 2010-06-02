@@ -9,8 +9,14 @@ module Capcode
     end
   end
   
+  class Home < Route '/'
+    def get
+      render :markaby => :home
+    end
+  end
+  
   # Access via GET /index
-  class Index < Route 
+  class Index < Route
     def get
       render :markaby => :index
     end
@@ -51,6 +57,14 @@ module Capcode
 end
 
 module Capcode::Views
+  def home
+    html do
+      body do
+        a "Index", :href => URL(Capcode::Index); br;
+        a "Home", :href => URL(Capcode::Home); br;
+      end
+    end
+  end
   def index
     html do
       body do
