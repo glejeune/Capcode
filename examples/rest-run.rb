@@ -1,3 +1,3 @@
 require 'rest'
 
-run Capcode.run()
+Capcode.run( :log => "rest.log" )

@@ -12,6 +12,7 @@ module Capcode
   class Action < Route "/action"
     def get( )
       @method = env["REQUEST_METHOD"]
+      log.write( "#{@method}...\n" )
       @data = params["data"]
       render :markaby => :action, :layout => :forms
     end
@@ -19,12 +20,14 @@ module Capcode
     alias_method :post, :get
     
     def delete
+      log.write( "DELETE...\n" )
       @method = "DELETE"
       @data = params["data"]
       render :markaby => :action, :layout => :forms
     end
     
     def put
+      log.write( "PUT...\n" )
       @method = "PUT"
       @data = params["data"]
       render :markaby => :action, :layout => :forms

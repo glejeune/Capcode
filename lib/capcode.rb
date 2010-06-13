@@ -285,6 +285,13 @@ module Capcode
       }
     end
     
+    # Use the Rack logger
+    #
+    #   log.write( "This is a log !" )
+    def log
+      Capcode.logger || env['rack.errors']
+    end
+    
     include Authorization
   end
   
@@ -639,6 +646,7 @@ module Capcode
       app = Rack::Lint.new(app)
       app = Rack::ShowExceptions.new(app)
       #app = Rack::Reloader.new(app) ## -- NE RELOAD QUE capcode.rb -- So !!!
+      app = Rack::CommonLogger.new( app, @cclogger = Logger.new(Capcode::Configuration.get(:log)) )
       
       middlewares.each do |mw|
         middleware, args, block = mw
@@ -764,7 +772,7 @@ module Capcode
         else
           app = application(Capcode::Configuration.get)
         end
-        app = Rack::CommonLogger.new( app, Logger.new(Capcode::Configuration.get(:log)) )
+        #app = Rack::CommonLogger.new( app, Logger.new(Capcode::Configuration.get(:log)) )
         
         if Capcode::Configuration.get(:console)
           puts "Run console..."
@@ -795,6 +803,10 @@ module Capcode
 
     def routes #:nodoc:
       @routes ||= {}
+    end
+    
+    def logger
+      @cclogger
     end
     
     def static #:nodoc:
