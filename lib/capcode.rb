@@ -703,6 +703,9 @@ module Capcode
         opts.on( "-s", "--static PATH", "Static directory -- relative to the root directory (default: #{Capcode::Configuration.get(:static)})" ) { |r|
           Capcode::Configuration.set :static, r
         }
+        opts.on( "-S", "--server SERVER", "Server to use (default: #{Capcode::Configuration.get(:server)})" ) { |r|
+          Capcode::Configuration.set :server, r
+        }
 
         opts.separator ""
         opts.separator "Common options:"
@@ -772,7 +775,6 @@ module Capcode
         else
           app = application(Capcode::Configuration.get)
         end
-        #app = Rack::CommonLogger.new( app, Logger.new(Capcode::Configuration.get(:log)) )
         
         if Capcode::Configuration.get(:console)
           puts "Run console..."
@@ -797,6 +799,15 @@ module Capcode
           Rack::Handler::Thin.run( app, {:Port => Capcode::Configuration.get(:port), :Host => Capcode::Configuration.get(:host)} ) { |server|
             trap "SIGINT", proc { server.stop }
           }
+        when "unicorn"
+          require 'unicorn/launcher'
+          puts "** Starting Unicorn on #{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"
+          Unicorn.run( app, {:listeners => ["#{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"]} )
+        when "rainbows"
+          require 'unicorn/launcher'
+          require 'rainbows'
+          puts "** Starting Rainbow on #{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"
+          Rainbows.run( app, {:listeners => ["#{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"]} )
         end
       end
     end

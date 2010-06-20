@@ -9,7 +9,7 @@ module Capcode
         @configuration = config.merge({
           :port => args[:port]||Capcode::Configuration.get(:port)||3000, 
           :host => args[:host]||Capcode::Configuration.get(:host)||"0.0.0.0",
-          :server => args[:server]||Capcode::Configuration.get(:server)||nil,
+          :server => args[:server]||Capcode::Configuration.get(:server)||"mongrel",
           :log => args[:log]||Capcode::Configuration.get(:log)||$stdout,
           :session => args[:session]||Capcode::Configuration.get(:session)||{},
           :pid => args[:pid]||Capcode::Configuration.get(:pid)||"#{$0}.pid",
@@ -36,7 +36,7 @@ module Capcode
       # Options :
       # * <tt>:port</tt> = Listen port (default: 3000)
       # * <tt>:host</tt> = Listen host (default: 0.0.0.0)
-      # * <tt>:server</tt> = Server type (webrick, mongrel or thin)
+      # * <tt>:server</tt> = Server type (webrick, mongrel, thin, unicorn or rainbow)
       # * <tt>:log</tt> = Output logfile (default: STDOUT)
       # * <tt>:session</tt> = Session parameters. See Rack::Session for more informations
       # * <tt>:pid</tt> = PID file (default: $0.pid)
