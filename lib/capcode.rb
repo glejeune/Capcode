@@ -491,15 +491,25 @@ module Capcode
             filter_output = Capcode::Filter.execute( self )
 
             if( filter_output.nil? )
-              case @env["REQUEST_METHOD"]
-                when "GET"                      
-                  get( *args )
-                when "POST"
-                  _method = params.delete( "_method" ) { |_| "post" }
+              # case @env["REQUEST_METHOD"]
+              #   when "GET"                      
+              #     get( *args )
+              #   when "POST"
+              #     _method = params.delete( "_method" ) { |_| "post" }
+              #     send( _method.downcase.to_sym, *args )
+              #   else
+              #     _method = @env["REQUEST_METHOD"]
+              #     send( _method.downcase.to_sym, *args )
+              # end
+              begin
+                _method = params.delete( "_method" ) { |_| @env["REQUEST_METHOD"] }
+                if self.class.method_defined?( _method.downcase.to_sym )
                   send( _method.downcase.to_sym, *args )
                 else
-                  _method = @env["REQUEST_METHOD"]
-                  send( _method.downcase.to_sym, *args )
+                  any( *args )
+                end
+              rescue NoMethodError => e
+                raise NoMethodError, "No method defined for #{@env["REQUEST_METHOD"]} action!"
               end
             else
               filter_output
