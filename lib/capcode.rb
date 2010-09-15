@@ -508,8 +508,8 @@ module Capcode
                 else
                   any( *args )
                 end
-              rescue NoMethodError => e
-                raise NoMethodError, "No method defined for #{@env["REQUEST_METHOD"]} action!"
+              rescue => e
+                raise e.class, e.to_s
               end
             else
               filter_output

@@ -12,10 +12,10 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
-=== 0.9.9
-* Add "any" to easly replace an <tt>alias_method :post, :get</tt>
-
 === 0.9.8
+* Add "any" to easly replace an <tt>alias_method :post, :get</tt>
+* Bug correction in Filter : actions are now executed in the order they are declared
+* Filters execution stop at the first non nul response
 * Add "log" helper
 * Add {Unicorn}[http://unicorn.bogomips.org/] and {Rainbows}[http://rainbows.rubyforge.org/] supports (*EXPERIMENTAL*)
 * Add --server option

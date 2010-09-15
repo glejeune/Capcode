@@ -13,6 +13,7 @@ module Capcode
     # 
     def before_filter( action, opts = {} )
       Capcode::Filter.filters[action] = { }
+      Capcode::Filter.ordered_actions << action
       
       opts.each do |k, v|
         Capcode::Filter.filters[action][k] = v
@@ -24,6 +25,10 @@ module Capcode
     class << self
       def filters #:nodoc:
         @filters ||= { }
+      end
+      
+      def ordered_actions
+        @ordered_actions ||= []
       end
       
       def execute( klass ) #:nodoc:
@@ -39,8 +44,9 @@ module Capcode
 
         klass.class.instance_eval{ include Capcode }
         rCod = nil
-        actions.each do |a|
+        ordered_actions.clone.delete_if{ |x| not actions.include?(x) }.each do |a|
           rCod = klass.send( a )
+          break unless rCod.nil?
         end
         
         return rCod
