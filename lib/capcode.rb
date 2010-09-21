@@ -13,7 +13,6 @@ require 'capcode/helpers/auth'
 require 'capcode/render/text'
 require 'capcode/configuration'
 require 'capcode/filters'
-
 require 'capcode/ext/rack/urlmap'
 
 module Capcode
@@ -818,6 +817,10 @@ module Capcode
           require 'rainbows'
           puts "** Starting Rainbow on #{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"
           Rainbows.run( app, {:listeners => ["#{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"]} )
+        when "control_tower"
+          require 'control_tower'
+          puts "** Starting ControlTower on #{Capcode::Configuration.get(:host)}:#{Capcode::Configuration.get(:port)}"
+          ControlTower::Server.new( app, {:host => Capcode::Configuration.get(:host), :port => Capcode::Configuration.get(:port)} ).start
         end
       end
     end
