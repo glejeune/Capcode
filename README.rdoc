@@ -14,6 +14,7 @@ Capcode is a web microframework
 
 === 0.9.9
 * Better static files support {See example static.rb}[http://github.com/glejeune/Capcode/tree/master/examples/static.rb]
+* Rewrite routes loader
 
 === 0.9.8
 * Add "any" to easly replace an <tt>alias_method :post, :get</tt>

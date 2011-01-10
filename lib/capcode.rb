@@ -7,7 +7,6 @@ require 'logger'
 Logger.class_eval { alias :write :<< } unless Logger.instance_methods.include? "write"
 require 'optparse'
 require 'irb'
-require 'active_support'
 require 'capcode/version'
 require 'capcode/core_ext'
 require 'capcode/helpers/auth'
@@ -126,7 +125,7 @@ module Capcode
           begin
             self.send( "render_#{render_type.to_s}", render_name, hash )
           rescue => e
-            raise Capcode::RenderError, "Error rendering `#{render_type.to_s}' : #{e.message}", caller
+            raise Capcode::RenderError, "Error rendering `#{render_type.to_s}' : #{e.message}"#, caller
           end
         end
       else
@@ -208,22 +207,22 @@ module Capcode
       a = a.delete_if{ |x| x.nil? }
       
       if klass.class == Class
-        klass.__urls__[0].each do |cpath, regexp|
-          data = a.clone
+        klass.__urls__[0].each do |cpath, data|
+          args = a.clone
           
-          n = Regexp.new( regexp ).number_of_captures
+          n = Regexp.new( data[:regexp] ).number_of_captures
           equart = (a.size - n).abs
           
-          rtable = regexp.dup.gsub( /\\\(/, "" ).gsub( /\\\)/, "" ).split( /\([^\)]*\)/ )
+          rtable = data[:regexp].dup.gsub( /\\\(/, "" ).gsub( /\\\)/, "" ).split( /\([^\)]*\)/ )
           rtable.each do |r|
             if r == ""
-              cpath = cpath + "/#{data.shift}"
+              cpath = cpath + "/#{args.shift}"
             else
               cpath = cpath + "/#{r}"
             end
           end
 
-          cpath = (cpath + "/" + data.join( "/" )) if data.size > 0
+          cpath = (cpath + "/" + args.join( "/" )) if args.size > 0
           cpath = cpath.gsub( /(\/){2,}/, "/" )
           result[equart] = cpath
         end
@@ -345,6 +344,10 @@ module Capcode
     end
   end
   
+  # Static file loader
+  #
+  # Use : 
+  #   set :static, "path/to/static"
   class StaticFiles
     def initialize(app)
       @app = app
@@ -396,7 +399,18 @@ module Capcode
         meta_def(:__urls__) {
           routes_paths = ['/'+self.to_s.gsub( /^Capcode::/, "" ).underscore] if create_path == true
           # < Route '/hello/world/([^\/]*)/id(\d*)', '/hello/(.*)', :agent => /Songbird (\d\.\d)[\d\/]*?/
-          # # => [ {'/hello/world' => '([^\/]*)/id(\d*)', '/hello' => '(.*)'}, 
+          # # => [ {
+          #          '/hello/world' => {
+          #            :regexp => '([^\/]*)/id(\d*)',
+          #            :route => '/hello/world/([^\/]*)/id(\d*)',
+          #            :nargs => 2
+          #          },
+          #          '/hello/world' => {
+          #            :regexp => '(.*)',
+          #            :route => '/hello/(.*)',
+          #            :nargs => 1
+          #          }
+          #        },
           #        2, 
           #        <Capcode::Klass>, 
           #        {:agent => /Songbird (\d\.\d)[\d\/]*?/} ]
@@ -407,13 +421,23 @@ module Capcode
               m = /\/([^\/]*\(.*)/.match( current_route_path )
               if m.nil?
                 raise Capcode::RouteError, "Route `#{current_route_path}' already defined with regexp `#{hash_of_routes[current_route_path]}' !", caller if hash_of_routes.keys.include?(current_route_path)
-                hash_of_routes[current_route_path] = ''
+                hash_of_routes[current_route_path] = {
+                  :regexp => '',
+                  :route => current_route_path,
+                  :nargs => 0
+                }
               else
                 _pre = m.pre_match
                 _pre = "/" if _pre.size == 0
                 raise Capcode::RouteError, "Route `#{_pre}' already defined with regexp `#{hash_of_routes[_pre]}' !", caller if hash_of_routes.keys.include?(_pre)
-                hash_of_routes[_pre] = m.captures[0]
-                max_captures_for_routes = Regexp.new(m.captures[0]).number_of_captures if max_captures_for_routes < Regexp.new(m.captures[0]).number_of_captures
+                captures_for_routes = Regexp.new(m.captures[0]).number_of_captures
+                
+                hash_of_routes[_pre] = {
+                  :regexp => m.captures[0],
+                  :route => current_route_path,
+                  :nargs => captures_for_routes
+                }
+                max_captures_for_routes = captures_for_routes if max_captures_for_routes < captures_for_routes
               end
             else
               raise Capcode::ParameterError, "Bad route declaration !", caller
@@ -478,40 +502,40 @@ module Capcode
               }
             end
 
-            finalPath = nil
-            finalArgs = nil
-            finalNArgs = nil
-            
-            aPath = @request.path.gsub( /^\//, "" ).split( "/" )
-            self.class.__urls__[0].each do |p, r|
-              xPath = p.gsub( /^\//, "" ).split( "/" )
-              if (xPath - aPath).size == 0
-                diffArgs = aPath - xPath
-                diffNArgs = diffArgs.size - 1
-                if finalNArgs.nil? or finalNArgs > diffNArgs
-                  finalPath = p
-                  finalNArgs = diffNArgs
-                  finalArgs = diffArgs
-                end
+            max_match_size = self.class.__urls__[1]
+            match_distance = self.class.__urls__[1]
+
+            result_route = nil
+            result_nargs = nil
+            result_args = []
+
+            self.class.__urls__[0].each do |route, data|
+              regexp = Regexp.new("^"+data[:route]+"$")
+
+              matching = regexp.match(@request.path)
+              next if matching.nil?
+
+              result_args = matching.to_a
+              result_args.shift
+              match_size = matching.size - 1
+
+              if match_size == max_match_size
+                # OK Terminé
+                result_route = data[:route]
+                result_nargs = data[:nargs]
+
+                break
+              elsif max_match_size > match_size and match_distance > max_match_size - match_size
+                match_distance = max_match_size - match_size
+
+                result_route = data[:route]
+                result_nargs = data[:nargs]
               end
             end
             
-            if finalNArgs > self.class.__urls__[1]
-              return [404, {'Content-Type' => 'text/plain'}, "Not Found: #{@request.path}"]
-            end
-        
-            nargs = self.class.__urls__[1]
-            regexp = Regexp.new( self.class.__urls__[0][finalPath] )
-            args = regexp.match( Rack::Utils.unescape(@request.path).gsub( Regexp.new( "^#{finalPath}" ), "" ).gsub( /^\//, "" ) )
-            if args.nil?
-              raise Capcode::ParameterError, "Path info `#{@request.path_info}' does not match route regexp `#{regexp.source}'"
-            else
-              args = args.captures.map { |x| (x.size == 0)?nil:x }
-            end
-            
-            while args.size < nargs
-              args << nil
-            end
+            return [404, {'Content-Type' => 'text/plain'}, "Not Found: #{@request.path}"] if result_route.nil?
+
+            result_args = result_args + Array.new(max_match_size - result_nargs)
 
             filter_output = Capcode::Filter.execute( self )
 
@@ -529,9 +553,11 @@ module Capcode
               begin
                 _method = params.delete( "_method" ) { |_| @env["REQUEST_METHOD"] }
                 if self.class.method_defined?( _method.downcase.to_sym )
-                  send( _method.downcase.to_sym, *args )
+                  # send( _method.downcase.to_sym, *args )
+                  send( _method.downcase.to_sym, *result_args )
                 else
-                  any( *args )
+                  # any( *args )
+                  any( *result_args )
                 end
               rescue => e
                 raise e.class, e.to_s
@@ -650,9 +676,7 @@ module Capcode
           if eval "Capcode::#{k}.public_methods(true).include?( '__urls__' )"
             hash_of_routes, max_captures_for_routes, klass = eval "Capcode::#{k}.__urls__"            
             hash_of_routes.keys.each do |current_route_path|
-              #raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if @@__ROUTES.keys.include?(current_route_path)
               raise Capcode::RouteError, "Route `#{current_route_path}' already define !", caller if Capcode.routes.keys.include?(current_route_path)
-#              Capcode.routes[current_route_path] = klass.new
               Capcode.routes[current_route_path] = klass
             end
           end

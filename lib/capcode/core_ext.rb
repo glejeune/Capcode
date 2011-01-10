@@ -27,3 +27,11 @@ class Hash
     end
   end
 end
+
+require 'active_support'
+
+class String
+  def underscore
+    ActiveSupport::Inflector.underscore( self )
+  end
+end
