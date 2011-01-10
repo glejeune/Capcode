@@ -12,6 +12,9 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 0.9.9
+* Better static files support {See example static.rb}[http://github.com/glejeune/Capcode/tree/master/examples/static.rb]
+
 === 0.9.8
 * Add "any" to easly replace an <tt>alias_method :post, :get</tt>
 * Bug correction in Filter : actions are now executed in the order they are declared

@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'rack'
+require 'rack/mime'
 require 'logger'
 Logger.class_eval { alias :write :<< } unless Logger.instance_methods.include? "write"
 require 'optparse'
@@ -343,6 +344,31 @@ module Capcode
       [status, headers, body]
     end
   end
+  
+  class StaticFiles
+    def initialize(app)
+      @app = app
+    end
+    
+    def call(env)
+      static = File.expand_path( File.join(Capcode::Configuration.get(:root), Capcode::Configuration.get(:static) ) )
+      file = File.join(static, env['REQUEST_PATH'].split("/") )
+      file = File.join(file, "index.html" ) if File.directory?(file)
+      if File.exist?(file)
+        body = [::File.read(file)]
+        header = {
+          "Last-Modified" => ::File.mtime(file).httpdate,
+          "Content-Type" => ::Rack::Mime.mime_type(::File.extname(file), 'text/plain'),
+          "Content-Length" => body.first.size.to_s
+        }
+        return [200, header, body]
+      else
+        return @app.call(env)
+      end
+      
+      return @app.call(env)
+    end
+  end
     
   class << self
     attr :__auth__, true #:nodoc:
@@ -613,6 +639,7 @@ module Capcode
           "Views", 
           "ParameterError", 
           "HTTPError", 
+          "StaticFiles",
           "Configuration", 
           "MissingLibrary", 
           "Route", 
@@ -650,6 +677,7 @@ module Capcode
       ) unless Capcode::Configuration.get(:static).nil?
       puts "** Initialize session" if Capcode::Configuration.get(:verbose)
       app = Rack::Session::Cookie.new( app, Capcode::Configuration.get(:session) )
+      app = Capcode::StaticFiles.new(app)
       app = Capcode::HTTPError.new(app)
       app = Rack::ContentLength.new(app)
       app = Rack::Lint.new(app)
