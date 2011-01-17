@@ -5,6 +5,14 @@ require 'rubygems'
 module Capcode
   set :static, "static"
   
+  before_filter :only_static, :only => [:StaticFiles]
+  
+  def only_static
+    puts "-- Filter for static files!"
+    
+    return nil
+  end
+  
   class Index < Route '/'
     def get
       render :markaby => :index
