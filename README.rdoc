@@ -12,6 +12,9 @@ Capcode is a web microframework
 
 == FEATURES/PROBLEMS:
 
+=== 1.0.0
+* json helper removed
+
 === 0.9.9
 * Better static files support {See example static.rb}[http://github.com/glejeune/Capcode/tree/master/examples/static.rb]
 * Rewrite routes loader
