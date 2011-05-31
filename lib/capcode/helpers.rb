@@ -136,7 +136,7 @@ module Capcode
         klass = a.shift
       end
 
-      [httpCode, {'Location' => URL(klass, *a)}, '']
+      [httpCode, {'Location' => URL(klass, *a), 'Content-Type' => 'text/plain'}, '']
     end
     
     # Builds an URL route to a controller or a path

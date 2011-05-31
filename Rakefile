@@ -1,7 +1,7 @@
 require 'rake'
 require 'rake/clean'
-require 'rake/gempackagetask'
-require 'rake/rdoctask'
+require 'rubygems/package_task'
+require 'rdoc/task'
 require 'rake/testtask'
 require 'json/pure'
 require 'open-uri'
@@ -48,7 +48,6 @@ spec =
     s.name = NAME
     s.version = VERS
     s.platform = Gem::Platform::RUBY
-    s.has_rdoc = true
     s.extra_rdoc_files = ["README.rdoc", "AUTHORS", "COPYING",
       'lib/capcode.rb', 'lib/capcode/helpers.rb', 'lib/capcode/http_error.rb', 'lib/capcode/static_files.rb', 
       'lib/capcode/configuration.rb', 'lib/capcode/base/db.rb'] + Dir.glob( "lib/capcode/render/*.rb" )
@@ -74,27 +73,26 @@ spec =
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!                                           !!
-!!       0.9.0 WAS A MAJOR ENHANCEMENT       !!
+!!       1.0.0 HAS A MAJOR ENHANCEMENT       !!
 !!    -----------------------------------    !!
 !!                                           !!
-!!  YOU MUST UNINSTALL ALL PREVIOUS          !!
-!!  VERSIONS !!!                             !!
+!!  Statics files are now loaded with a new  !!
+!!  class. So if you specify                 !!
 !!                                           !!
-!!  gem uninstall Capode --version '< 0.9.0' !!
+!!  set :static, "static"                    !!
 !!                                           !!
-!!  IF YOU DON'T DO IT, THIS ONE WILL NOT    !!
-!!  WORK !!!                                 !!
+!!  All files in the "static" directory      !!
+!!  will be loaded from the URI              !!
 !!                                           !!
-!!  Moreover :                               !!
+!!  http://server:port/<page>                !!
 !!                                           !!
-!!  Renderers and database accessors have    !!
-!!  been extracted and are now in the        !!
-!!  plugins repository :                     !!
+!!  Where <page> is any file in the static   !!
+!!  directory. You no longer need to use     !!
 !!                                           !!
-!!  http://github.com/glejeune/Capcode.more  !!
+!!  http://server:port/static/<page>         !!
 !!                                           !!
-!!  Each plugin is a gem that’s can be       !!
-!!  installed separately.                    !!
+!!  For more information, see example        !!
+!!  static.rb                                !!
 !!                                           !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -107,7 +105,7 @@ You can also read the Capcode book (fr) at
 EOM
   end
 
-Rake::GemPackageTask.new(spec) do |p|
+Gem::PackageTask.new(spec) do |p|
   p.need_tar = true
   p.gem_spec = spec
 end

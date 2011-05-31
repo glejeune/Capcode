@@ -33,6 +33,7 @@ module Capcode
       
       def execute( klass ) #:nodoc:
         klass_sym = "#{klass.class}".split( /::/)[-1].to_sym
+        
         actions = []
         filters.each do |action, data|
           if (data[:only] and data[:only].include?(klass_sym)) or 

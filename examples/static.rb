@@ -6,15 +6,19 @@ module Capcode
   set :static, "static"
   
   before_filter :only_static, :only => [:StaticFiles]
-  
   def only_static
-    puts "-- Filter for static files!"
+    puts "-> Filter for static files!"
+    
+    p session
+    
+    puts "<- Filter for static files!"
     
     return nil
   end
   
   class Index < Route '/'
     def get
+      session['date'] = Time.now
       render :markaby => :index
     end
   end

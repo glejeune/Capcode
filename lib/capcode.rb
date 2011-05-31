@@ -126,7 +126,7 @@ module Capcode
         
         # Session hash
         def session
-          @env['rack.session']
+          env['rack.session']
         end
         
         # Return the Rack::Request object
@@ -361,16 +361,18 @@ module Capcode
 #      app = Rack::URLMap.new(Capcode.routes)
       app = Capcode::Ext::Rack::URLMap.new(Capcode.routes)
       puts "** Initialize static directory (#{Capcode.static}) in #{File.expand_path(Capcode::Configuration.get(:root))}" if Capcode::Configuration.get(:verbose)
-      app = Rack::Static.new( 
-        app, 
-        #:urls => [@@__STATIC_DIR], 
-        :urls => [Capcode.static], 
-        :root => File.expand_path(Capcode::Configuration.get(:root)) 
-      ) unless Capcode::Configuration.get(:static).nil?
+      
+      #app = Rack::Static.new( 
+      #  app, 
+      #  #:urls => [@@__STATIC_DIR], 
+      #  :urls => [Capcode.static], 
+      #  :root => File.expand_path(Capcode::Configuration.get(:root)) 
+      #) unless Capcode::Configuration.get(:static).nil?
+      
       puts "** Initialize session" if Capcode::Configuration.get(:verbose)
-      app = Rack::Session::Cookie.new( app, Capcode::Configuration.get(:session) )
       app = Capcode::StaticFiles.new(app)
       app = Capcode::HTTPError.new(app)
+      app = Rack::Session::Cookie.new( app, Capcode::Configuration.get(:session) )
       app = Rack::ContentLength.new(app)
       app = Rack::Lint.new(app)
       app = Rack::ShowExceptions.new(app)
